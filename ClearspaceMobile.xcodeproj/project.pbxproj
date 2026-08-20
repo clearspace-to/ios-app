@@ -391,16 +391,16 @@
 				LastUpgradeCheck = 1500;
 				TargetAttributes = {
 					135F8695678A76B152577C50 = {
-						DevelopmentTeam = "";
+						DevelopmentTeam = W4Y8D5GH62;
 						ProvisioningStyle = Automatic;
 					};
 					156FBA34C62EFDF234DB3AD6 = {
-						DevelopmentTeam = "";
+						DevelopmentTeam = W4Y8D5GH62;
 						ProvisioningStyle = Automatic;
 						TestTargetID = 135F8695678A76B152577C50;
 					};
 					C111F8781689DC48D48BD16D = {
-						DevelopmentTeam = "";
+						DevelopmentTeam = W4Y8D5GH62;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -583,7 +583,7 @@
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = W4Y8D5GH62;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -643,7 +643,7 @@
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = W4Y8D5GH62;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -676,19 +676,16 @@
 		5E87F29E98FC47DC1B53CEAA /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = "";
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				INFOPLIST_FILE = ClearspaceMobile/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Clearspace;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = to.clearspace.mobile;
 				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};
@@ -743,19 +740,16 @@
 		FADE19751679F029E1B2767C /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = "";
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				INFOPLIST_FILE = ClearspaceMobile/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Clearspace;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = to.clearspace.mobile;
 				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};

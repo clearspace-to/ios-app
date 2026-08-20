@@ -11,7 +11,7 @@ settings:
     SWIFT_VERSION: "5.9"
     MARKETING_VERSION: "0.1.0"
     CURRENT_PROJECT_VERSION: "1"
-    DEVELOPMENT_TEAM: ""            # set once Apple Developer account is connected
+    DEVELOPMENT_TEAM: W4Y8D5GH62    # Clearspace Offices Inc.
     CODE_SIGN_STYLE: Automatic
 
 targets:
@@ -23,15 +23,15 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: to.clearspace.mobile
-        ASSETCATALOG_COMPILER_APPICON_NAME: ""   # no app icon yet — added before TestFlight
-        INFOPLIST_KEY_UILaunchScreen_Generation: YES
-        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: UIInterfaceOrientationPortrait
-        INFOPLIST_KEY_CFBundleDisplayName: Clearspace
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon   # placeholder wordmark icon; replace with final design
+        TARGETED_DEVICE_FAMILY: "1"
     info:
       path: ClearspaceMobile/Info.plist
       properties:
         CFBundleDisplayName: Clearspace
         UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
         CFBundleURLTypes:
           - CFBundleURLName: to.clearspace.mobile.auth
             CFBundleURLSchemes: [clearspacemobile]
