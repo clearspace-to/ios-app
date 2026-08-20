@@ -24,14 +24,14 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: to.clearspace.mobile
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon   # placeholder wordmark icon; replace with final design
-        INFOPLIST_KEY_UILaunchScreen_Generation: YES
-        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: UIInterfaceOrientationPortrait
-        INFOPLIST_KEY_CFBundleDisplayName: Clearspace
+        TARGETED_DEVICE_FAMILY: "1"
     info:
       path: ClearspaceMobile/Info.plist
       properties:
         CFBundleDisplayName: Clearspace
         UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
         CFBundleURLTypes:
           - CFBundleURLName: to.clearspace.mobile.auth
             CFBundleURLSchemes: [clearspacemobile]
