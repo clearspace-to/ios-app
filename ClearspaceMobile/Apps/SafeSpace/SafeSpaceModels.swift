@@ -140,6 +140,39 @@ struct ProjectSafetySummary {
     let reports: [DailyReport]
 }
 
+/// One committed subcontractor on a project, grouped across its Procore POs.
+struct ProjectTrade: Identifiable, Hashable {
+    var id: String { vendor.isEmpty ? poNumbers.joined(separator: ",") : vendor }
+    let vendor: String
+    let scopes: [String]
+    let poNumbers: [String]
+
+    var scopeLine: String { scopes.joined(separator: " · ") }
+}
+
+/// A construction key date. `passed` only ever comes from Wrike's milestone
+/// completion — the other three dates are plans, not events.
+struct ProjectKeyDate: Identifiable, Hashable {
+    var id: String { label }
+    let label: String
+    let date: String?
+    var passed: Bool = false
+
+    var displayValue: String { date ?? "—" }
+}
+
+/// GET /api/projects/<n>/overview. Loaded separately from the record sets
+/// because it calls Wrike and Procore, which are slow and can be down.
+struct ProjectOverview {
+    let keyDates: [ProjectKeyDate]
+    let pmName: String?
+    let designerName: String?
+    let siteSuperName: String?
+    let procoreURL: URL?
+    /// nil = Procore unreachable or unlinked; [] = no committed subs yet.
+    let trades: [ProjectTrade]?
+}
+
 extension Notification.Name {
     static let safeSpaceRecordCreated = Notification.Name("safeSpaceRecordCreated")
 }

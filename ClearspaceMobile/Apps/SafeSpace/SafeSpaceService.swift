@@ -4,6 +4,7 @@ import Foundation
 protocol SafeSpaceService {
     func projects() async throws -> [SafetyProject]
     func projectSummary(projectNumber: String) async throws -> ProjectSafetySummary
+    func projectOverview(projectNumber: String) async throws -> ProjectOverview
     func talks() async throws -> [ToolboxTalk]
     func talkDetail(id: String) async throws -> ToolboxTalkDetail
     func submissions() async throws -> [FormSubmission]
@@ -53,6 +54,15 @@ struct LiveSafeSpaceService: SafeSpaceService {
             forms: response.submissions.map { $0.toModel(projectName: project.projectName) },
             reports: response.dailyReports.map { $0.toModel(projectName: project.projectName) }
         )
+    }
+
+    /// Its own request, not folded into projectSummary: this route calls Wrike
+    /// and Procore, which are slow and can be down. The record tabs must never
+    /// wait on or fail with either.
+    func projectOverview(projectNumber: String) async throws -> ProjectOverview {
+        let response: ProjectOverviewResponse =
+            try await api.get("/api/projects/\(projectNumber)/overview")
+        return response.toModel()
     }
 
     // MARK: - Toolbox talks

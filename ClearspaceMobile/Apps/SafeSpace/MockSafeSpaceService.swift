@@ -101,6 +101,34 @@ struct MockSafeSpaceService: SafeSpaceService {
         )
     }
 
+    func projectOverview(projectNumber: String) async throws -> ProjectOverview {
+        // 25-004 deliberately has no Procore link, so the "unavailable" state is
+        // reachable in previews without turning the network off.
+        let linked = projectNumber != "25-004"
+        return ProjectOverview(
+            keyDates: [
+                ProjectKeyDate(label: "Construction start", date: "Jun 9, 2026"),
+                ProjectKeyDate(label: "Rough inspection pass", date: "Jul 14, 2026", passed: true),
+                ProjectKeyDate(label: "Construction completion", date: "Sep 25, 2026"),
+                ProjectKeyDate(label: "Takeover", date: "Oct 23, 2026"),
+            ],
+            pmName: "Dana Whitfield",
+            designerName: "Lucila Mckinlay",
+            siteSuperName: "Marco Ruiz",
+            procoreURL: linked ? URL(string: "https://us02.procore.com/1/project/home") : nil,
+            trades: linked ? [
+                ProjectTrade(vendor: "Vertex Drywall", scopes: ["Drywall, Ceiling and Acoustic Walls"],
+                             poNumbers: ["PO-24118-013"]),
+                ProjectTrade(vendor: "Nova Electric", scopes: ["Electrical Work"],
+                             poNumbers: ["PO-24118-012"]),
+                ProjectTrade(vendor: "Peak Mechanical", scopes: ["HVAC & Plumbing Works"],
+                             poNumbers: ["PO-24118-005"]),
+                ProjectTrade(vendor: "Arcamm Fire Protection", scopes: ["Fire Protection Works"],
+                             poNumbers: ["PO-24118-008"]),
+            ] : nil
+        )
+    }
+
     func talks() async throws -> [ToolboxTalk] { Self.talks }
 
     func talkDetail(id: String) async throws -> ToolboxTalkDetail {

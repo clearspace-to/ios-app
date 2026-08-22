@@ -15,6 +15,40 @@ struct SubmissionsResponse: Decodable { let submissions: [SubmissionDTO] }
 struct DailyReportsResponse: Decodable { let reports: [DailyReportDTO] }
 struct DailyReportResponse: Decodable { let report: DailyReportDTO }
 
+/// GET /api/projects/<n>/overview — key dates, team, Procore link, committed subs.
+struct ProjectOverviewResponse: Decodable {
+    let keyDates: KeyDatesDTO
+    let team: ProjectTeamDTO
+    let procoreUrl: String?
+    /// nil = Procore unreachable or unlinked; [] = no committed subs yet.
+    let trades: [TradeDTO]?
+}
+
+struct KeyDatesDTO: Decodable {
+    let constructionStart: String?
+    /// From the Wrike timeline (milestone M0032); nil when not scheduled.
+    let roughInspection: MilestoneDTO?
+    let constructionCompletion: String?
+    let takeover: String?
+}
+
+struct MilestoneDTO: Decodable {
+    let date: String?
+    let completed: Bool
+}
+
+struct ProjectTeamDTO: Decodable {
+    let pmName: String?
+    let designerName: String?
+    let siteSuperName: String?
+}
+
+struct TradeDTO: Decodable {
+    let vendor: String
+    let scopes: [String]
+    let poNumbers: [String]
+}
+
 struct ProjectDetailResponse: Decodable {
     let project: ProjectDTO
     let talks: [TalkDTO]
@@ -289,6 +323,38 @@ extension ProjectDTO {
             reportCount: dailyReportCount ?? 0,
             lastReportDate: lastReportDate.map { SafetyDates.day($0) }
         )
+    }
+}
+
+extension ProjectOverviewResponse {
+    func toModel() -> ProjectOverview {
+        // Order is the construction sequence, not the JSON's — that's what a
+        // super reads down the card.
+        let dates: [ProjectKeyDate] = [
+            ProjectKeyDate(label: "Construction start",
+                           date: keyDates.constructionStart.map { SafetyDates.day($0) }),
+            ProjectKeyDate(label: "Rough inspection pass",
+                           date: keyDates.roughInspection?.date.map { SafetyDates.day($0) },
+                           passed: keyDates.roughInspection?.completed ?? false),
+            ProjectKeyDate(label: "Construction completion",
+                           date: keyDates.constructionCompletion.map { SafetyDates.day($0) }),
+            ProjectKeyDate(label: "Takeover",
+                           date: keyDates.takeover.map { SafetyDates.day($0) }),
+        ]
+        return ProjectOverview(
+            keyDates: dates,
+            pmName: team.pmName,
+            designerName: team.designerName,
+            siteSuperName: team.siteSuperName,
+            procoreURL: procoreUrl.flatMap { URL(string: $0) },
+            trades: trades?.map { $0.toModel() }
+        )
+    }
+}
+
+extension TradeDTO {
+    func toModel() -> ProjectTrade {
+        ProjectTrade(vendor: vendor, scopes: scopes, poNumbers: poNumbers)
     }
 }
 

@@ -2,13 +2,21 @@ import SwiftUI
 
 /// One project's safety record. Talks, forms and reports stay three separate
 /// sets — deliberately not merged into one timeline.
+///
+/// Overview leads: the key dates, the team and the Procore link answer "what is
+/// this site?" before the record tabs answer "what happened on it?". Overview
+/// and Trades share one request that is loaded SEPARATELY from the record sets,
+/// because it calls Wrike and Procore — slow, and occasionally down. A failure
+/// there must leave the record tabs fully usable.
 struct SafetyProjectDetailView: View {
     let service: SafeSpaceService
     let projectNumber: String
 
     @State private var state: LoadState<ProjectSafetySummary> = .loading
-    @State private var tab = "Talks"
-    private let tabs = ["Talks", "Forms", "Reports"]
+    @State private var overview: ProjectOverview?
+    @State private var overviewError: String?
+    @State private var tab = "Overview"
+    private let tabs = ["Overview", "Trades", "Talks", "Forms", "Reports"]
 
     var body: some View {
         Group {
@@ -22,8 +30,6 @@ struct SafetyProjectDetailView: View {
                     Section {
                         FieldRow(label: "Number", value: summary.project.projectNumber)
                         FieldRow(label: "Status", value: summary.project.statusLabel)
-                        FieldRow(label: "Site super", value: summary.project.siteSuperName ?? "Unassigned")
-                        FieldRow(label: "Project manager", value: summary.project.pmName ?? "—")
                         FieldRow(label: "Last daily report", value: summary.project.lastReportDate ?? "Never filed")
                     }
 
@@ -36,12 +42,16 @@ struct SafetyProjectDetailView: View {
                     .listRowSeparator(.hidden)
 
                     switch tab {
+                    case "Trades":
+                        tradesSection
+                    case "Talks":
+                        talksSection(summary.talks)
                     case "Forms":
                         formsSection(summary.forms)
                     case "Reports":
                         reportsSection(summary.reports)
                     default:
-                        talksSection(summary.talks)
+                        overviewSection(fallback: summary.project)
                     }
                 }
                 .clearspaceList()
@@ -54,6 +64,74 @@ struct SafetyProjectDetailView: View {
         .task { await load() }
         .refreshable { await load() }
     }
+
+    // MARK: - Overview
+
+    /// `fallback` supplies the PM and site super from the project row so the
+    /// team still reads when Wrike/Procore are unreachable.
+    @ViewBuilder
+    private func overviewSection(fallback: SafetyProject) -> some View {
+        Section("Construction key dates") {
+            if let overview {
+                ForEach(overview.keyDates) { entry in
+                    LabeledContent(entry.label) {
+                        HStack(spacing: 6) {
+                            Text(entry.displayValue)
+                                .foregroundStyle(entry.date == nil ? .tertiary : .secondary)
+                            if entry.passed { StageBadge(text: "Passed") }
+                        }
+                    }
+                }
+            } else if let overviewError {
+                Text(overviewError).foregroundStyle(.secondary).font(.footnote)
+            } else {
+                ProgressView()
+            }
+        }
+
+        Section("Team") {
+            FieldRow(label: "Project manager", value: overview?.pmName ?? fallback.pmName ?? "—")
+            FieldRow(label: "Design lead", value: overview?.designerName ?? "—")
+            FieldRow(label: "Site super",
+                     value: overview?.siteSuperName ?? fallback.siteSuperName ?? "Unassigned")
+        }
+
+        if let url = overview?.procoreURL {
+            Section {
+                Link(destination: url) {
+                    Label("Open in Procore", systemImage: "arrow.up.forward.square")
+                }
+            }
+        }
+    }
+
+    // MARK: - Trades
+
+    @ViewBuilder
+    private var tradesSection: some View {
+        Section("Trades") {
+            if let trades = overview?.trades {
+                if trades.isEmpty {
+                    Text("No committed subs yet")
+                        .foregroundStyle(.secondary)
+                } else {
+                    ForEach(trades) { trade in
+                        RecordRow(title: trade.vendor.isEmpty ? "(no vendor named)" : trade.vendor,
+                                  subtitle: trade.scopeLine)
+                    }
+                }
+            } else if overview != nil || overviewError != nil {
+                // Loaded (or failed) with no trade list: Procore is unlinked or down.
+                Text("Procore data unavailable — this project isn't linked to Procore, or Procore couldn't be reached.")
+                    .foregroundStyle(.secondary)
+                    .font(.footnote)
+            } else {
+                ProgressView()
+            }
+        }
+    }
+
+    // MARK: - Records
 
     @ViewBuilder
     private func talksSection(_ talks: [ToolboxTalk]) -> some View {
@@ -105,10 +183,22 @@ struct SafetyProjectDetailView: View {
     }
 
     private func load() async {
+        // Two independent requests: a dead Wrike or Procore must not empty the
+        // record tabs, and a slow one must not delay them.
+        async let summary = service.projectSummary(projectNumber: projectNumber)
+        async let detail = service.projectOverview(projectNumber: projectNumber)
+
         do {
-            state = .loaded(try await service.projectSummary(projectNumber: projectNumber))
+            state = .loaded(try await summary)
         } catch {
             state = .failed(error.localizedDescription)
+        }
+        do {
+            overview = try await detail
+            overviewError = nil
+        } catch {
+            overview = nil
+            overviewError = error.localizedDescription
         }
     }
 }

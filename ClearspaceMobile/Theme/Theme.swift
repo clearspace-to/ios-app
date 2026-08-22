@@ -28,6 +28,7 @@ enum Theme {
         case let s where s.contains("reviewed"): return .green
         case let s where s.contains("submitted"): return .blue
         case let s where s.contains("incident"): return .red
+        case let s where s.contains("passed"): return .green
         default: return .gray
         }
     }
