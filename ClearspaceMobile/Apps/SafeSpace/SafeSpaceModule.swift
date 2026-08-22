@@ -64,6 +64,16 @@ enum SafeSpaceModule {
                 default: return SafetySearchScope.projects.title
                 }
             },
+            createView: { action in
+                switch action {
+                case "New Daily Report":
+                    return AnyView(DailyReportFormView(service: service))
+                case "New Toolbox Talk":
+                    return AnyView(ToolboxTalkFormView(service: service))
+                default:
+                    return nil
+                }
+            },
             screen: { destination in
                 switch destination {
                 case "talks": return AnyView(ToolboxTalksView(service: service))

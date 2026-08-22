@@ -50,6 +50,9 @@ struct ToolboxTalksView: View {
         .navigationTitle("Toolbox Talks")
         .task { await load() }
         .refreshable { await load() }
+        .onReceive(NotificationCenter.default.publisher(for: .safeSpaceRecordCreated)) { _ in
+            Task { await load() }
+        }
     }
 
     private func load() async {

@@ -10,6 +10,8 @@ protocol SafeSpaceService {
     func submissionDetail(id: String) async throws -> FormSubmissionDetail
     func reports() async throws -> [DailyReport]
     func reportDetail(id: String) async throws -> DailyReport
+    func createReport(_ body: CreateDailyReportBody) async throws
+    func createTalk(_ body: CreateToolboxTalkBody) async throws
     func search(query: String) async throws -> [SafetySearchHit]
 }
 
@@ -99,6 +101,16 @@ struct LiveSafeSpaceService: SafeSpaceService {
     func reportDetail(id: String) async throws -> DailyReport {
         let response: DailyReportResponse = try await api.get("/api/daily-reports/\(id)")
         return response.report.toModel()
+    }
+
+    // MARK: - Create
+
+    func createReport(_ body: CreateDailyReportBody) async throws {
+        let _: CreateRecordResponse = try await api.post("/api/daily-reports", body: body)
+    }
+
+    func createTalk(_ body: CreateToolboxTalkBody) async throws {
+        let _: CreateRecordResponse = try await api.post("/api/talks", body: body)
     }
 
     // MARK: - Search

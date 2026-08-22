@@ -140,6 +140,14 @@ struct MockSafeSpaceService: SafeSpaceService {
         )
     }
 
+    func createReport(_ body: CreateDailyReportBody) async throws {
+        try await Task.sleep(for: .milliseconds(400))
+    }
+
+    func createTalk(_ body: CreateToolboxTalkBody) async throws {
+        try await Task.sleep(for: .milliseconds(400))
+    }
+
     func reports() async throws -> [DailyReport] { Self.reports }
 
     func reportDetail(id: String) async throws -> DailyReport {

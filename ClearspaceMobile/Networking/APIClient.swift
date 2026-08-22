@@ -62,7 +62,9 @@ struct APIClient {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
             if let body {
                 request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-                request.httpBody = try JSONEncoder().encode(body)
+                let encoder = JSONEncoder()
+                if convertSnakeCase { encoder.keyEncodingStrategy = .convertToSnakeCase }
+                request.httpBody = try encoder.encode(body)
             }
             let (data, response) = try await URLSession.shared.data(for: request)
             guard let http = response as? HTTPURLResponse else { throw APIError.badResponse }

@@ -44,6 +44,7 @@ struct AppModule: Identifiable {
     /// The section to float to the top given the screen you're on.
     var primarySearchGroup: (String) -> String? = { _ in nil }
 
+    var createView: (String) -> AnyView? = { _ in nil }
     var screen: (String) -> AnyView = { _ in AnyView(EmptyView()) }
     var detail: (DetailRoute) -> AnyView = { _ in AnyView(EmptyView()) }
     var search: (String) async -> [ModuleSearchHit] = { _ in [] }

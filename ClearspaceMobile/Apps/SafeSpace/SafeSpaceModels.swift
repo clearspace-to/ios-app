@@ -140,6 +140,10 @@ struct ProjectSafetySummary {
     let reports: [DailyReport]
 }
 
+extension Notification.Name {
+    static let safeSpaceRecordCreated = Notification.Name("safeSpaceRecordCreated")
+}
+
 /// The record types safe_space's command bar can search.
 enum SafetySearchScope: String, CaseIterable {
     case projects, talks, forms, reports

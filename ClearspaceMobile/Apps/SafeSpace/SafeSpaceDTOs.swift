@@ -178,6 +178,39 @@ indirect enum JSONValue: Decodable {
     }
 }
 
+// MARK: - Request bodies
+
+struct CreateDailyReportBody: Encodable {
+    let projectNumber: String
+    let reportDate: String
+    let weather: String
+    let crew: [CrewLineBody]
+    let workPerformed: String
+    let hazardsObserved: String
+    let toolboxTalkDelivered: Bool
+    let visitors: String
+    let deliveries: String
+    let incidents: Bool
+    let notes: String
+
+    struct CrewLineBody: Encodable {
+        let tradeName: String
+        let headcount: Int
+    }
+}
+
+struct CreateToolboxTalkBody: Encodable {
+    let projectNumber: String
+    let topicName: String
+    let talkDate: String
+    let deliveredBy: String
+    let topicBody: String
+}
+
+struct CreateRecordResponse: Decodable {
+    let id: String?
+}
+
 // MARK: - Dates
 
 enum SafetyDates {

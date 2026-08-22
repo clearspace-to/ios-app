@@ -18,6 +18,7 @@ struct AppShell: View {
     @State private var createOpen = false
     @State private var paletteQuery = ""
     @State private var hits: [ModuleSearchHit] = []
+    @State private var activeCreate: CreateAction?
     @State private var toast: String?
 
     init(modules: [AppModule]) {
@@ -109,8 +110,17 @@ struct AppShell: View {
         .onAppear(perform: applyLaunchArguments)
         .confirmationDialog(module.createSheetTitle, isPresented: $createOpen, titleVisibility: .visible) {
             ForEach(module.createActions, id: \.self) { action in
-                Button(action) { flash("\(action) — coming with editing") }
+                Button(action) {
+                    if module.createView(action) != nil {
+                        activeCreate = CreateAction(id: action)
+                    } else {
+                        flash("\(action) — coming soon")
+                    }
+                }
             }
+        }
+        .sheet(item: $activeCreate) { action in
+            module.createView(action.id)
         }
     }
 
@@ -209,6 +219,12 @@ struct AppShell: View {
                 }
             }
         return PaletteGroup(label: "Go To", items: items)
+    }
+
+    // MARK: - Create
+
+    struct CreateAction: Identifiable {
+        let id: String
     }
 
     // MARK: - Tooling hooks (screenshots / UI tests)
