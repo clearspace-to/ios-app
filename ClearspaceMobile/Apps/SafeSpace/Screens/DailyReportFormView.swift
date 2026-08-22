@@ -30,12 +30,15 @@ struct DailyReportFormView: View {
         NavigationStack {
             Form {
                 Section {
-                    Picker("Project", selection: $selectedProject) {
-                        Text("Select a project").tag("")
-                        ForEach(projects) { project in
-                            Text(project.projectName)
+                    NavigationLink {
+                        ProjectPickerList(projects: projects, selection: $selectedProject)
+                    } label: {
+                        HStack {
+                            Text("Project")
+                            Spacer()
+                            Text(selectedProjectName)
+                                .foregroundStyle(.secondary)
                                 .lineLimit(1)
-                                .tag(project.projectNumber)
                         }
                     }
                     DatePicker("Date", selection: $reportDate, displayedComponents: .date)
@@ -111,8 +114,17 @@ struct DailyReportFormView: View {
         }
     }
 
+    private var selectedProjectName: String {
+        projects.first { $0.projectNumber == selectedProject }?.projectName
+            ?? (selectedProject.isEmpty ? "Select a project" : selectedProject)
+    }
+
     private func loadProjects() async {
         projects = (try? await service.projects()) ?? []
+        if selectedProject.isEmpty, let last = SafeSpaceModule.lastViewedProjectNumber,
+           projects.contains(where: { $0.projectNumber == last }) {
+            selectedProject = last
+        }
     }
 
     private func submit() async {
@@ -156,4 +168,46 @@ struct CrewEntry: Identifiable {
     let id = UUID()
     var tradeName: String = ""
     var headcount: Int = 1
+}
+
+struct ProjectPickerList: View {
+    let projects: [SafetyProject]
+    @Binding var selection: String
+    @Environment(\.dismiss) private var dismiss
+    @State private var search = ""
+
+    private var filtered: [SafetyProject] {
+        if search.isEmpty { return projects }
+        return projects.filter {
+            $0.projectName.localizedCaseInsensitiveContains(search)
+                || $0.projectNumber.localizedCaseInsensitiveContains(search)
+        }
+    }
+
+    var body: some View {
+        List(filtered) { project in
+            Button {
+                selection = project.projectNumber
+                dismiss()
+            } label: {
+                HStack {
+                    VStack(alignment: .leading) {
+                        Text(project.projectName).lineLimit(1)
+                        Text(project.projectNumber)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    if project.projectNumber == selection {
+                        Image(systemName: "checkmark")
+                            .foregroundStyle(.tint)
+                    }
+                }
+            }
+            .foregroundStyle(.primary)
+        }
+        .searchable(text: $search, prompt: "Search projects")
+        .navigationTitle("Select Project")
+        .navigationBarTitleDisplayMode(.inline)
+    }
 }

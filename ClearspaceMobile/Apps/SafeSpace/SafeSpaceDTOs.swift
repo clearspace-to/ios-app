@@ -201,10 +201,14 @@ struct CreateDailyReportBody: Encodable {
 
 struct CreateToolboxTalkBody: Encodable {
     let projectNumber: String
-    let topicName: String
+    let topic: TopicBody
     let talkDate: String
     let deliveredBy: String
-    let topicBody: String
+
+    struct TopicBody: Encodable {
+        let name: String
+        let body: String
+    }
 }
 
 struct CreateRecordResponse: Decodable {

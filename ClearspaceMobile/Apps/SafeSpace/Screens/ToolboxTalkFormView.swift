@@ -23,12 +23,15 @@ struct ToolboxTalkFormView: View {
         NavigationStack {
             Form {
                 Section {
-                    Picker("Project", selection: $selectedProject) {
-                        Text("Select a project").tag("")
-                        ForEach(projects) { project in
-                            Text(project.projectName)
+                    NavigationLink {
+                        ProjectPickerList(projects: projects, selection: $selectedProject)
+                    } label: {
+                        HStack {
+                            Text("Project")
+                            Spacer()
+                            Text(selectedProjectName)
+                                .foregroundStyle(.secondary)
                                 .lineLimit(1)
-                                .tag(project.projectNumber)
                         }
                     }
                     TextField("Topic", text: $topicName, prompt: Text("e.g. Ladder Safety"))
@@ -71,10 +74,19 @@ struct ToolboxTalkFormView: View {
         }
     }
 
+    private var selectedProjectName: String {
+        projects.first { $0.projectNumber == selectedProject }?.projectName
+            ?? (selectedProject.isEmpty ? "Select a project" : selectedProject)
+    }
+
     private func loadProjects() async {
         projects = (try? await service.projects()) ?? []
         if deliveredBy.isEmpty {
             deliveredBy = auth.user?.displayName ?? ""
+        }
+        if selectedProject.isEmpty, let last = SafeSpaceModule.lastViewedProjectNumber,
+           projects.contains(where: { $0.projectNumber == last }) {
+            selectedProject = last
         }
     }
 
@@ -84,10 +96,12 @@ struct ToolboxTalkFormView: View {
 
         let body = CreateToolboxTalkBody(
             projectNumber: selectedProject,
-            topicName: topicName.trimmingCharacters(in: .whitespaces),
+            topic: .init(
+                name: topicName.trimmingCharacters(in: .whitespaces),
+                body: topicBody.trimmingCharacters(in: .whitespaces)
+            ),
             talkDate: Self.dateString(talkDate),
-            deliveredBy: deliveredBy.trimmingCharacters(in: .whitespaces),
-            topicBody: topicBody.trimmingCharacters(in: .whitespaces)
+            deliveredBy: deliveredBy.trimmingCharacters(in: .whitespaces)
         )
 
         do {

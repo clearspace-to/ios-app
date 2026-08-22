@@ -8,6 +8,7 @@ import SwiftUI
 /// signs in against that project. See AuthConfig.
 enum SafeSpaceModule {
     static let id = "safe_space"
+    static var lastViewedProjectNumber: String?
 
     /// Live against safe.clearspace.to; sample data in preview/test runs.
     /// Computed, so switching into sample-data mode after launch takes effect.

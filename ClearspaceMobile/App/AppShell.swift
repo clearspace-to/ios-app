@@ -112,7 +112,11 @@ struct AppShell: View {
             ForEach(module.createActions, id: \.self) { action in
                 Button(action) {
                     if module.createView(action) != nil {
-                        activeCreate = CreateAction(id: action)
+                        let selected = action
+                        Task {
+                            try? await Task.sleep(for: .milliseconds(400))
+                            activeCreate = CreateAction(id: selected)
+                        }
                     } else {
                         flash("\(action) — coming soon")
                     }

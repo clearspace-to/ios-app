@@ -50,6 +50,7 @@ struct SafetyProjectDetailView: View {
             }
         }
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear { SafeSpaceModule.lastViewedProjectNumber = projectNumber }
         .task { await load() }
         .refreshable { await load() }
     }
