@@ -110,7 +110,14 @@ struct LiveSafeSpaceService: SafeSpaceService {
     }
 
     func createTalk(_ body: CreateToolboxTalkBody) async throws {
-        let _: CreateRecordResponse = try await api.post("/api/talks", body: body)
+        let envelope: CreateTopicEnvelope = try await api.post("/api/topics", body: body.topic)
+        let talkBody = CreateTalkRequestBody(
+            topicId: envelope.topic.id,
+            projectNumber: body.projectNumber,
+            talkDate: body.talkDate,
+            deliveredBy: body.deliveredBy
+        )
+        let _: CreateRecordResponse = try await api.post("/api/talks", body: talkBody)
     }
 
     // MARK: - Search

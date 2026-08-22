@@ -215,6 +215,18 @@ struct CreateRecordResponse: Decodable {
     let id: String?
 }
 
+struct CreateTopicEnvelope: Decodable {
+    let topic: TopicCreatedDTO
+    struct TopicCreatedDTO: Decodable { let id: String }
+}
+
+struct CreateTalkRequestBody: Encodable {
+    let topicId: String
+    let projectNumber: String
+    let talkDate: String
+    let deliveredBy: String
+}
+
 // MARK: - Dates
 
 enum SafetyDates {
