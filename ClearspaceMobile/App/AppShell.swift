@@ -23,9 +23,11 @@ struct AppShell: View {
 
     init(modules: [AppModule]) {
         self.modules = modules
-        let first = modules.first { $0.available } ?? modules[0]
-        _moduleID = State(initialValue: first.id)
-        _destination = State(initialValue: first.defaultDestination)
+        let storedID = UserDefaults.standard.string(forKey: "lastSpaceID")
+        let initial = modules.first(where: { $0.id == storedID && $0.available })
+            ?? modules.first { $0.available } ?? modules[0]
+        _moduleID = State(initialValue: initial.id)
+        _destination = State(initialValue: initial.defaultDestination)
     }
 
     private var module: AppModule {
@@ -152,6 +154,7 @@ struct AppShell: View {
         }
         guard target.id != moduleID else { return }
         moduleID = target.id
+        UserDefaults.standard.set(target.id, forKey: "lastSpaceID")
         go(to: target.defaultDestination)
     }
 

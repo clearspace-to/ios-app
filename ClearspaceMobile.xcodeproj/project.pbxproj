@@ -44,6 +44,7 @@
 		9C8EB3C84E20CF6398EE9967 /* StatTileGrid.swift in Sources */ = {isa = PBXBuildFile; fileRef = 108EB08838227E4AA29F6A4C /* StatTileGrid.swift */; };
 		A1ACA803AD524F795C8DEFA2 /* AppShell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3087DD3E610B74CC4825EE99 /* AppShell.swift */; };
 		A51070D2405D783EC7DED5B1 /* SafeSpaceModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5C4CB58BA7C79CEF77D8FC6 /* SafeSpaceModule.swift */; };
+		A62461D77EE535A5DA266E99 /* SpaceSelectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBF12C56804ABE28530665DB /* SpaceSelectorView.swift */; };
 		AA4C4ECBEBC337710B15E527 /* Endpoints.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5D9A5EE935F4DD8B8364725 /* Endpoints.swift */; };
 		ACAF763C6204D69923EB1E28 /* ShellNavigationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A42AD858C3124E7F4D57E98 /* ShellNavigationTests.swift */; };
 		ADFFE242B1864FA9F659C361 /* SafeSpaceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67F14D24D343B12190F0A3CD /* SafeSpaceTests.swift */; };
@@ -147,6 +148,7 @@
 		EBD977F532BE39C5486A475F /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		ED6609AE943ACE7318C83AE3 /* PKCE.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PKCE.swift; sourceTree = "<group>"; };
 		F104459044C85B6092100C20 /* SafeSpaceDecodingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafeSpaceDecodingTests.swift; sourceTree = "<group>"; };
+		FBF12C56804ABE28530665DB /* SpaceSelectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpaceSelectorView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -213,6 +215,7 @@
 				E3139A71FA00C51577E99390 /* LoginView.swift */,
 				85FD5C5E17131160E7175C45 /* RootView.swift */,
 				31D6CBB081C9C731BA2BE7FD /* SettingsView.swift */,
+				FBF12C56804ABE28530665DB /* SpaceSelectorView.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -510,6 +513,7 @@
 				64B2079C5452F96DEC87B02C /* SalesSpaceModule.swift in Sources */,
 				1CEC8E9C947488E2D897F11A /* SalesSpaceService.swift in Sources */,
 				B42664D51833B6431A91A672 /* SettingsView.swift in Sources */,
+				A62461D77EE535A5DA266E99 /* SpaceSelectorView.swift in Sources */,
 				2F6D9076477215A3FD321CFD /* StageBadge.swift in Sources */,
 				E6FC614225A4F8DF7F75663C /* StageStepper.swift in Sources */,
 				9C8EB3C84E20CF6398EE9967 /* StatTileGrid.swift in Sources */,

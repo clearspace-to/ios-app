@@ -1,8 +1,9 @@
 import SwiftUI
 
-/// Decides between the login screen and the signed-in experience.
+/// Decides between the login screen, space selector, and the signed-in shell.
 struct RootView: View {
     @EnvironmentObject private var auth: AuthManager
+    @AppStorage("lastSpaceID") private var lastSpaceID: String?
 
     var body: some View {
         Group {
@@ -12,7 +13,13 @@ struct RootView: View {
             case .signedOut:
                 LoginView()
             case .signedIn:
-                AppShell(modules: ClearspaceApps.all)
+                if lastSpaceID != nil {
+                    AppShell(modules: ClearspaceApps.all)
+                } else {
+                    SpaceSelectorView(modules: ClearspaceApps.all) { spaceID in
+                        withAnimation { lastSpaceID = spaceID }
+                    }
+                }
             }
         }
         .task { await auth.restoreSession() }
