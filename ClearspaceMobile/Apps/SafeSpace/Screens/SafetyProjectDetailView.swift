@@ -16,6 +16,7 @@ struct SafetyProjectDetailView: View {
     @State private var overview: ProjectOverview?
     @State private var overviewError: String?
     @State private var tab = "Overview"
+    @State private var showNewReport = false
     private let tabs = ["Overview", "Trades", "Talks", "Forms", "Reports"]
 
     var body: some View {
@@ -63,6 +64,12 @@ struct SafetyProjectDetailView: View {
         .onAppear { SafeSpaceModule.lastViewedProjectNumber = projectNumber }
         .task { await load() }
         .refreshable { await load() }
+        .sheet(isPresented: $showNewReport) {
+            DailyReportFormView(service: service, preselectedProjectNumber: projectNumber)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .safeSpaceRecordCreated)) { _ in
+            Task { await load() }
+        }
     }
 
     // MARK: - Overview
@@ -173,6 +180,11 @@ struct SafetyProjectDetailView: View {
     @ViewBuilder
     private func reportsSection(_ reports: [DailyReport]) -> some View {
         Section("Daily Reports") {
+            Button {
+                showNewReport = true
+            } label: {
+                Label("New Daily Report", systemImage: "plus.circle")
+            }
             if reports.isEmpty {
                 Text("No reports on file").foregroundStyle(.secondary)
             }
