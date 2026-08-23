@@ -98,7 +98,11 @@ struct SafetyProjectDetailView: View {
 
         if let url = overview?.procoreURL {
             Section {
-                Link(destination: url) {
+                Button {
+                    UIApplication.shared.open(url, options: [.universalLinksOnly: true]) { opened in
+                        if !opened { UIApplication.shared.open(url) }
+                    }
+                } label: {
                     Label("Open in Procore", systemImage: "arrow.up.forward.square")
                 }
             }
