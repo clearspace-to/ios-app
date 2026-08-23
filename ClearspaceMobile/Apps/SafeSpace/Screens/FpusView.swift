@@ -92,6 +92,7 @@ struct FpusView: View {
                 Image(systemName: "chevron.left")
             }
             .buttonStyle(.borderless)
+            .accessibilityIdentifier("fpus.weekBack")
             Spacer()
             Text("Week ending \(FpuWeeks.label(weekEnding))")
                 .font(.subheadline.weight(.medium))
@@ -103,6 +104,7 @@ struct FpusView: View {
             }
             .buttonStyle(.borderless)
             .disabled(isCurrentWeek)
+            .accessibilityIdentifier("fpus.weekForward")
         }
     }
 

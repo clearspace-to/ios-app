@@ -32,8 +32,11 @@ struct FpuEntryFormView: View {
         _weekEnding = State(initialValue: initialWeekEnding ?? FpuWeeks.currentFriday())
     }
 
-    private var canSubmit: Bool { form != nil && !submitting }
+    private var canSubmit: Bool { form != nil && !submitting && !isPastWeek }
     private var loadKey: String { "\(selectedProject)|\(weekEnding)" }
+    /// Weeks before the current Mon–Sun week are locked: filed or not, they're
+    /// read-only once the following Monday starts.
+    private var isPastWeek: Bool { weekEnding < FpuWeeks.currentFriday() }
 
     var body: some View {
         NavigationStack {
@@ -41,9 +44,16 @@ struct FpuEntryFormView: View {
                 contextSection
 
                 if let form {
-                    progressSection(form)
-                    notesSection
-                    photosSection(form)
+                    if isPastWeek {
+                        Section {
+                            Label("This week is locked — past FPUs can't be edited.",
+                                  systemImage: "lock.fill")
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    progressSection(form).disabled(isPastWeek)
+                    notesSection.disabled(isPastWeek)
+                    photosSection(form).disabled(isPastWeek)
                 } else if let formError {
                     Section {
                         Text(formError).foregroundStyle(.secondary).font(.footnote)
@@ -62,7 +72,7 @@ struct FpuEntryFormView: View {
                 ToolbarItem(placement: .confirmationAction) {
                     if submitting {
                         ProgressView()
-                    } else {
+                    } else if !isPastWeek {
                         Button("Submit") { Task { await submit() } }
                             .bold()
                             .disabled(!canSubmit)
@@ -269,7 +279,7 @@ struct FpuEntryFormView: View {
     }
 
     private func submit() async {
-        guard let form else { return }
+        guard let form, !isPastWeek else { return }
         submitting = true
         defer {
             submitting = false

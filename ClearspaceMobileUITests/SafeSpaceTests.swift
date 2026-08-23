@@ -145,6 +145,40 @@ final class SafeSpaceTests: XCTestCase {
                       "Log FPU did not present the entry sheet")
     }
 
+    func testPastWeekFpuIsLockedReadOnly() {
+        let app = launchApp(["-app=safe_space", "-screen=fpus"])
+        XCTAssertTrue(app.navigationBars["FPUs"].waitForExistence(timeout: 10))
+
+        app.buttons["fpus.weekBack"].tap()
+
+        let row = app.staticTexts["Riverside Tower — Floors 8-12"]
+        XCTAssertTrue(row.waitForExistence(timeout: 5))
+        row.tap()
+
+        XCTAssertTrue(app.navigationBars["Log FPU"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["This week is locked — past FPUs can't be edited."]
+            .waitForExistence(timeout: 5), "Past week did not show the lock message")
+        XCTAssertFalse(app.buttons["Submit"].exists, "Submit should not be offered on a locked past week")
+
+        let stepper = app.steppers.firstMatch
+        XCTAssertTrue(stepper.waitForExistence(timeout: 5))
+        XCTAssertFalse(stepper.isEnabled, "Progress steppers should be disabled on a locked past week")
+    }
+
+    func testCurrentWeekFpuIsStillEditable() {
+        let app = launchApp(["-app=safe_space", "-screen=fpus"])
+        XCTAssertTrue(app.navigationBars["FPUs"].waitForExistence(timeout: 10))
+
+        let row = app.staticTexts["Riverside Tower — Floors 8-12"]
+        XCTAssertTrue(row.waitForExistence(timeout: 5))
+        row.tap()
+
+        XCTAssertTrue(app.navigationBars["Log FPU"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["Submit"].waitForExistence(timeout: 5),
+                      "Current week should still offer Submit")
+        XCTAssertFalse(app.staticTexts["This week is locked — past FPUs can't be edited."].exists)
+    }
+
     func testCommandBarSearchesSafeSpaceRecordsScopedToScreen() {
         let app = launchApp(["-app=safe_space", "-screen=daily"])
 
