@@ -10,8 +10,10 @@
 		023D9C126C8A5A398997F082 /* FormSubmissionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87D2D81EC26B0AF643D7A1CD /* FormSubmissionsView.swift */; };
 		168CF7A95976BD386B210578 /* SupabaseAuthClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1781FF7368C3B009A173A62B /* SupabaseAuthClient.swift */; };
 		168E7F7CA544335C92051CCB /* SafetyProjectsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0FF04DCDEF9649202DD69E1 /* SafetyProjectsView.swift */; };
+		16A696917C8FE0F22A7E7830 /* FpusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 740B8FAB62E32BA0319B7152 /* FpusView.swift */; };
 		1AE3273486663505F258DDD0 /* MockSalesSpaceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D88B6DC85970533FACA396C /* MockSalesSpaceService.swift */; };
 		1CEC8E9C947488E2D897F11A /* SalesSpaceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D9AD8F19DAC0C4E472EC126 /* SalesSpaceService.swift */; };
+		21599C7FA689CC2895E4B5B9 /* FpuDTOs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E59ACA6142C7DCEC3454004 /* FpuDTOs.swift */; };
 		2342EAA0A6DF2618575C68FC /* DailyReportsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9BBE145E331B6E3AC1512CD /* DailyReportsView.swift */; };
 		2585B5E0C59FA17F5B2EA905 /* MockSafeSpaceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A86727D29225398FB5282226 /* MockSafeSpaceService.swift */; };
 		27F023D1F290FBF08C28F08A /* SafeSpaceModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE808A6E2C60A28A34FD4078 /* SafeSpaceModels.swift */; };
@@ -29,6 +31,7 @@
 		5912FAB71D75C861B8A14BEE /* FilterChipsRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42066D2AEDA4A0E945CB8002 /* FilterChipsRow.swift */; };
 		62F2F5CE03B27A1D368D6463 /* PipelineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 968D7BCB2C0039C6CB981E33 /* PipelineView.swift */; };
 		64B2079C5452F96DEC87B02C /* SalesSpaceModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = BABB9FE5BA83FAC0C2E5504E /* SalesSpaceModule.swift */; };
+		65CC70B54027DF8DB0863FE9 /* FpuEntryFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2D065622545937CCB8C067F /* FpuEntryFormView.swift */; };
 		6614F45384F7F31EC84FA968 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85FD5C5E17131160E7175C45 /* RootView.swift */; };
 		7A23ADE27F560CE7ED6FFEBC /* SalesDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 431D229663BD48B2F7DCEA32 /* SalesDashboardView.swift */; };
 		7D1A4CD44CC5477B2F585BD4 /* BottomBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2CB6C45BBCD8BA7C3DD78B2 /* BottomBar.swift */; };
@@ -45,9 +48,11 @@
 		A1ACA803AD524F795C8DEFA2 /* AppShell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3087DD3E610B74CC4825EE99 /* AppShell.swift */; };
 		A51070D2405D783EC7DED5B1 /* SafeSpaceModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5C4CB58BA7C79CEF77D8FC6 /* SafeSpaceModule.swift */; };
 		A62461D77EE535A5DA266E99 /* SpaceSelectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBF12C56804ABE28530665DB /* SpaceSelectorView.swift */; };
+		A7F991C8838FE168FBBF97C1 /* FpuDecodingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC6D99E552A23AF490AE5310 /* FpuDecodingTests.swift */; };
 		AA4C4ECBEBC337710B15E527 /* Endpoints.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5D9A5EE935F4DD8B8364725 /* Endpoints.swift */; };
 		ACAF763C6204D69923EB1E28 /* ShellNavigationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A42AD858C3124E7F4D57E98 /* ShellNavigationTests.swift */; };
 		ADFFE242B1864FA9F659C361 /* SafeSpaceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67F14D24D343B12190F0A3CD /* SafeSpaceTests.swift */; };
+		B016C87ADB1FCFEEDF3994B8 /* FpuModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2342847D1778F7A28CF62B7C /* FpuModels.swift */; };
 		B42664D51833B6431A91A672 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31D6CBB081C9C731BA2BE7FD /* SettingsView.swift */; };
 		B7637294E8E74760950C69DA /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBD977F532BE39C5486A475F /* Theme.swift */; };
 		BD2FB35D246C7AFAA65EE6BD /* PKCE.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED6609AE943ACE7318C83AE3 /* PKCE.swift */; };
@@ -92,11 +97,13 @@
 		1781FF7368C3B009A173A62B /* SupabaseAuthClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseAuthClient.swift; sourceTree = "<group>"; };
 		1D9AD8F19DAC0C4E472EC126 /* SalesSpaceService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SalesSpaceService.swift; sourceTree = "<group>"; };
 		2054941BB5C71D0EA34D9CA7 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		2342847D1778F7A28CF62B7C /* FpuModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FpuModels.swift; sourceTree = "<group>"; };
 		25FEAD51745BAF7389AF98D9 /* ClearspaceMobileTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = ClearspaceMobileTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		261FE8105F19D7F85D595936 /* SafetyProjectDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafetyProjectDetailView.swift; sourceTree = "<group>"; };
 		294AAB06F7769CD612E53E22 /* OpportunityDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpportunityDetailView.swift; sourceTree = "<group>"; };
 		2A42AD858C3124E7F4D57E98 /* ShellNavigationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShellNavigationTests.swift; sourceTree = "<group>"; };
 		2D0FB4CB64CEA8EED47086AB /* SafeSpaceService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafeSpaceService.swift; sourceTree = "<group>"; };
+		2E59ACA6142C7DCEC3454004 /* FpuDTOs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FpuDTOs.swift; sourceTree = "<group>"; };
 		2FE68922EB60E6FE1D770B27 /* Glass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Glass.swift; sourceTree = "<group>"; };
 		305B98ED19FABA0A16B5AB27 /* ToolboxTalkFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolboxTalkFormView.swift; sourceTree = "<group>"; };
 		3087DD3E610B74CC4825EE99 /* AppShell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppShell.swift; sourceTree = "<group>"; };
@@ -117,6 +124,7 @@
 		68FA7504B4789A7CFF39FB1E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		6BFDE2574B89064660B43CAE /* CommandPaletteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandPaletteView.swift; sourceTree = "<group>"; };
 		717404A127A57CAED6F02CE2 /* AuthConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthConfig.swift; sourceTree = "<group>"; };
+		740B8FAB62E32BA0319B7152 /* FpusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FpusView.swift; sourceTree = "<group>"; };
 		85FD5C5E17131160E7175C45 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		87D2D81EC26B0AF643D7A1CD /* FormSubmissionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormSubmissionsView.swift; sourceTree = "<group>"; };
 		968D7BCB2C0039C6CB981E33 /* PipelineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PipelineView.swift; sourceTree = "<group>"; };
@@ -132,6 +140,7 @@
 		A5D9A5EE935F4DD8B8364725 /* Endpoints.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Endpoints.swift; sourceTree = "<group>"; };
 		A6A4D69AFE6D4C9AC1A5E886 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
 		A86727D29225398FB5282226 /* MockSafeSpaceService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockSafeSpaceService.swift; sourceTree = "<group>"; };
+		AC6D99E552A23AF490AE5310 /* FpuDecodingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FpuDecodingTests.swift; sourceTree = "<group>"; };
 		AE661FA3906A01914775CE76 /* ContactCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactCard.swift; sourceTree = "<group>"; };
 		B5C4CB58BA7C79CEF77D8FC6 /* SafeSpaceModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafeSpaceModule.swift; sourceTree = "<group>"; };
 		B792BE76A692557B52D2DDC0 /* ClearspaceMobileUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = ClearspaceMobileUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -140,6 +149,7 @@
 		BF603740B4107E924D07E2BE /* InitialsAvatar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InitialsAvatar.swift; sourceTree = "<group>"; };
 		C8D7244BDD2D3542329B7E38 /* SafeSpaceDTOs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafeSpaceDTOs.swift; sourceTree = "<group>"; };
 		D0A13116694DE3CA04804AD9 /* ClearspaceMobileApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClearspaceMobileApp.swift; sourceTree = "<group>"; };
+		D2D065622545937CCB8C067F /* FpuEntryFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FpuEntryFormView.swift; sourceTree = "<group>"; };
 		D6495D3FD2134E8C1A3A0B1A /* StageStepper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StageStepper.swift; sourceTree = "<group>"; };
 		D9BBE145E331B6E3AC1512CD /* DailyReportsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyReportsView.swift; sourceTree = "<group>"; };
 		DDCA09412D95C25CDB6ACDA0 /* RecordsHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordsHomeView.swift; sourceTree = "<group>"; };
@@ -261,6 +271,8 @@
 				9A6862F466B2B2F725495B9A /* DailyReportFormView.swift */,
 				D9BBE145E331B6E3AC1512CD /* DailyReportsView.swift */,
 				87D2D81EC26B0AF643D7A1CD /* FormSubmissionsView.swift */,
+				D2D065622545937CCB8C067F /* FpuEntryFormView.swift */,
+				740B8FAB62E32BA0319B7152 /* FpusView.swift */,
 				261FE8105F19D7F85D595936 /* SafetyProjectDetailView.swift */,
 				A0FF04DCDEF9649202DD69E1 /* SafetyProjectsView.swift */,
 				305B98ED19FABA0A16B5AB27 /* ToolboxTalkFormView.swift */,
@@ -290,6 +302,8 @@
 		DA5EAAEAB4CCF8E2E626172C /* SafeSpace */ = {
 			isa = PBXGroup;
 			children = (
+				2E59ACA6142C7DCEC3454004 /* FpuDTOs.swift */,
+				2342847D1778F7A28CF62B7C /* FpuModels.swift */,
 				A86727D29225398FB5282226 /* MockSafeSpaceService.swift */,
 				C8D7244BDD2D3542329B7E38 /* SafeSpaceDTOs.swift */,
 				BE808A6E2C60A28A34FD4078 /* SafeSpaceModels.swift */,
@@ -328,6 +342,7 @@
 		FE5BAE5425340CC7FD32EA5A /* ClearspaceMobileTests */ = {
 			isa = PBXGroup;
 			children = (
+				AC6D99E552A23AF490AE5310 /* FpuDecodingTests.swift */,
 				F104459044C85B6092100C20 /* SafeSpaceDecodingTests.swift */,
 			);
 			path = ClearspaceMobileTests;
@@ -451,6 +466,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A7F991C8838FE168FBBF97C1 /* FpuDecodingTests.swift in Sources */,
 				E4EA10E6E6CCEAE4DB3E9452 /* SafeSpaceDecodingTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -487,6 +503,10 @@
 				34D6CB0F8562EC14F44BDC4D /* FieldRow.swift in Sources */,
 				5912FAB71D75C861B8A14BEE /* FilterChipsRow.swift in Sources */,
 				023D9C126C8A5A398997F082 /* FormSubmissionsView.swift in Sources */,
+				21599C7FA689CC2895E4B5B9 /* FpuDTOs.swift in Sources */,
+				65CC70B54027DF8DB0863FE9 /* FpuEntryFormView.swift in Sources */,
+				B016C87ADB1FCFEEDF3994B8 /* FpuModels.swift in Sources */,
+				16A696917C8FE0F22A7E7830 /* FpusView.swift in Sources */,
 				91E0DE5A157123748F9885C2 /* Glass.swift in Sources */,
 				FFABB02CC0566C061CF838F9 /* InitialsAvatar.swift in Sources */,
 				3187F517AEA9A42BF8D7993C /* KeychainStore.swift in Sources */,
@@ -546,6 +566,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -705,6 +726,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -721,6 +743,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -737,6 +760,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

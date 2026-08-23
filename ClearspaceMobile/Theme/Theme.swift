@@ -29,6 +29,12 @@ enum Theme {
         case let s where s.contains("submitted"): return .blue
         case let s where s.contains("incident"): return .red
         case let s where s.contains("passed"): return .green
+        // FPU states
+        case let s where s.contains("filed"): return .green
+        case let s where s.contains("procore"): return .blue
+        case let s where s.contains("draft"): return .yellow
+        case let s where s.contains("outstanding"): return .orange
+        case let s where s.contains("done"): return .gray
         default: return .gray
         }
     }

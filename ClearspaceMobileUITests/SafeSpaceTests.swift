@@ -20,6 +20,12 @@ final class SafeSpaceTests: XCTestCase {
         XCTAssertTrue(explore.waitForExistence(timeout: 10), "Login screen never appeared")
         explore.tap()
 
+        // A fresh install shows the space selector first; pick safe_space.
+        // (Skipped when a previous run already stored a space.)
+        if app.staticTexts["Choose a space to get started"].waitForExistence(timeout: 3) {
+            app.staticTexts["safe_space"].firstMatch.tap()
+        }
+
         // Land in safe_space and confirm real rows render.
         app.buttons["bottomBar.menu"].tap()
         app.buttons["drawer.brand"].tap()
@@ -32,7 +38,8 @@ final class SafeSpaceTests: XCTestCase {
     }
 
     func testAppSwitcherOpensSafeSpace() {
-        let app = launchApp()
+        // Start pinned to sales_space to prove the switcher crosses apps.
+        let app = launchApp(["-app=sales_space"])
 
         app.buttons["bottomBar.menu"].tap()
         XCTAssertTrue(app.staticTexts["SALES_SPACE"].waitForExistence(timeout: 10))
@@ -70,11 +77,30 @@ final class SafeSpaceTests: XCTestCase {
         XCTAssertTrue(project.waitForExistence(timeout: 10))
         project.tap()
 
-        // Lands on the project rollup with its talks listed first.
+        // The record sets live behind the segmented control.
+        let talksTab = app.buttons["Talks"]
+        XCTAssertTrue(talksTab.waitForExistence(timeout: 5), "Project detail tabs did not render")
+        talksTab.tap()
         XCTAssertTrue(app.staticTexts["Toolbox Talks"].waitForExistence(timeout: 5),
                       "Project detail did not show its toolbox talks")
         XCTAssertTrue(app.staticTexts["Ladder Safety & Three-Point Contact"].waitForExistence(timeout: 5),
                       "Project detail did not list the project's talks")
+    }
+
+    func testProjectDetailFpusTabListsWeeks() {
+        let app = launchApp(["-app=safe_space"])
+
+        let project = app.staticTexts["Riverside Tower — Floors 8-12"]
+        XCTAssertTrue(project.waitForExistence(timeout: 10))
+        project.tap()
+
+        let fpusTab = app.buttons["FPUs"]
+        XCTAssertTrue(fpusTab.waitForExistence(timeout: 5), "FPUs tab missing from project detail")
+        fpusTab.tap()
+
+        XCTAssertTrue(app.staticTexts["Outstanding"].waitForExistence(timeout: 5),
+                      "FPU history did not flag the unfiled week")
+        XCTAssertTrue(app.staticTexts["58%"].exists, "FPU history did not show a filed week's overall")
     }
 
     func testTalkDetailShowsAttendance() {
@@ -87,6 +113,36 @@ final class SafeSpaceTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Attendance"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["Luis Ferreira"].waitForExistence(timeout: 5),
                       "Attendance sheet did not render signed-in workers")
+    }
+
+    func testFpusDashboardListsProjectsAndOpensLogSheet() {
+        let app = launchApp(["-app=safe_space", "-screen=fpus"])
+        XCTAssertTrue(app.navigationBars["FPUs"].waitForExistence(timeout: 10))
+
+        // Attention-first sort: the outstanding project leads the list.
+        let row = app.staticTexts["Riverside Tower — Floors 8-12"]
+        XCTAssertTrue(row.waitForExistence(timeout: 5), "FPU dashboard did not list projects")
+        XCTAssertTrue(app.staticTexts["Outstanding"].exists, "Outstanding badge missing")
+
+        // Any row opens the log sheet with the API-served divisions prefilled.
+        row.tap()
+        XCTAssertTrue(app.navigationBars["Log FPU"].waitForExistence(timeout: 5),
+                      "Tapping a dashboard row did not open the log sheet")
+        XCTAssertTrue(app.staticTexts["A1 — Demolition"].waitForExistence(timeout: 5),
+                      "Trade divisions did not load in the log sheet")
+    }
+
+    func testCreateSheetOffersLogFpu() {
+        let app = launchApp(["-app=safe_space"])
+        XCTAssertTrue(app.navigationBars["Projects"].waitForExistence(timeout: 10))
+
+        app.buttons["bottomBar.create"].tap()
+        let logFpu = app.buttons["Log FPU"]
+        XCTAssertTrue(logFpu.waitForExistence(timeout: 5), "Log FPU missing from the create sheet")
+        logFpu.tap()
+
+        XCTAssertTrue(app.navigationBars["Log FPU"].waitForExistence(timeout: 5),
+                      "Log FPU did not present the entry sheet")
     }
 
     func testCommandBarSearchesSafeSpaceRecordsScopedToScreen() {

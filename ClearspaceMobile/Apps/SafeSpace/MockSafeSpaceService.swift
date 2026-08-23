@@ -87,6 +87,32 @@ struct MockSafeSpaceService: SafeSpaceService {
                     attachmentCount: 3, submittedBy: "Tom Beaudry"),
     ]
 
+    /// The real division list, verbatim from the API's FPU_COLUMNS.
+    static let fpuColumns: [FpuColumn] = [
+        FpuColumn(key: "a1_demolition", label: "A1 — Demolition"),
+        FpuColumn(key: "a2_partitions", label: "A2 — Partitions"),
+        FpuColumn(key: "a3_ceiling", label: "A3 — Ceiling"),
+        FpuColumn(key: "a4_electrical", label: "A4 — Electrical"),
+        FpuColumn(key: "a5_plumbing", label: "A5 — Plumbing"),
+        FpuColumn(key: "a6_hvac", label: "A6 — HVAC"),
+        FpuColumn(key: "a7_flooring", label: "A7 — Flooring"),
+        FpuColumn(key: "a8_glazing", label: "A8 — Glazing"),
+        FpuColumn(key: "a9_life_safety", label: "A9 — Life Safety"),
+        FpuColumn(key: "a10_wall_finishes", label: "A10 — Wall Finishes"),
+        FpuColumn(key: "a11_doors_security", label: "A11 — Doors & Security"),
+        FpuColumn(key: "a12_millwork_kitchen", label: "A12 — Millwork & Kitchen"),
+        FpuColumn(key: "c2_networking", label: "C2 — Networking"),
+        FpuColumn(key: "c3_structured_cabling", label: "C3 — Structured Cabling"),
+    ]
+
+    static let fpuPreviousValues: [String: Int] = [
+        "a1_demolition": 100, "a2_partitions": 85, "a3_ceiling": 60,
+        "a4_electrical": 55, "a5_plumbing": 50, "a6_hvac": 45,
+        "a7_flooring": 20, "a8_glazing": 10, "a9_life_safety": 30,
+        "a10_wall_finishes": 5, "a11_doors_security": 0,
+        "a12_millwork_kitchen": 0, "c2_networking": 15, "c3_structured_cabling": 15,
+    ]
+
     // MARK: - SafeSpaceService
 
     func projects() async throws -> [SafetyProject] { Self.projects }
@@ -170,6 +196,69 @@ struct MockSafeSpaceService: SafeSpaceService {
 
     func createReport(_ body: CreateDailyReportBody) async throws {
         try await Task.sleep(for: .milliseconds(400))
+    }
+
+    // MARK: - FPUs
+
+    func fpuOverview(weekEnding: String) async throws -> FpuWeekOverview {
+        FpuWeekOverview(weekEnding: weekEnding, rows: [
+            FpuProjectWeek(projectNumber: "24-118", projectName: "Riverside Tower — Floors 8-12",
+                           siteSuperName: "Marco Ruiz", mine: true, state: .outstanding,
+                           overall: nil, updatedAt: nil),
+            FpuProjectWeek(projectNumber: "24-092", projectName: "Lakeshore Campus Phase 2",
+                           siteSuperName: "Tom Beaudry", mine: false, state: .draft,
+                           overall: 46, updatedAt: "Aug 21, 2026 · 7:40 AM"),
+            FpuProjectWeek(projectNumber: "25-004", projectName: "Midtown Medical Suites",
+                           siteSuperName: nil, mine: false, state: .filedSafeSpace,
+                           overall: 62, updatedAt: "Aug 21, 2026 · 4:05 PM"),
+            FpuProjectWeek(projectNumber: "24-077", projectName: "Gateway Logistics Hub",
+                           siteSuperName: "Ken Osei", mine: false, state: .filedProcore,
+                           overall: 78, updatedAt: "Aug 21, 2026 · 2:12 PM"),
+            FpuProjectWeek(projectNumber: "25-011", projectName: "Union Station Retail Pods",
+                           siteSuperName: "Marco Ruiz", mine: true, state: .done,
+                           overall: 100, updatedAt: nil),
+        ])
+    }
+
+    func fpuForm(projectNumber: String, weekEnding: String) async throws -> FpuEntryForm {
+        let project = Self.projects.first { $0.projectNumber == projectNumber } ?? Self.projects[0]
+        return FpuEntryForm(
+            weekEnding: weekEnding,
+            projectNumber: project.projectNumber,
+            projectName: project.projectName,
+            columns: Self.fpuColumns,
+            prefill: Self.fpuPreviousValues,
+            previous: Self.fpuPreviousValues,
+            comment: "",
+            existingAttachments: [],
+            entrySource: nil
+        )
+    }
+
+    func submitFpu(projectNumber: String, body: SubmitFpuBody) async throws {
+        try await Task.sleep(for: .milliseconds(400))
+    }
+
+    func fpuWeeks(projectNumber: String) async throws -> [FpuWeekRow] {
+        [
+            FpuWeekRow(weekEnding: FpuWeeks.currentFriday(), filed: false, state: .outstanding,
+                       overall: nil, hasComment: false, attachmentCount: 0, submittedBy: nil),
+            FpuWeekRow(weekEnding: FpuWeeks.shifted(FpuWeeks.currentFriday(), byWeeks: -1),
+                       filed: true, state: .filedSafeSpace, overall: 58, hasComment: true,
+                       attachmentCount: 4, submittedBy: "marco.ruiz@clearspace.to"),
+            FpuWeekRow(weekEnding: FpuWeeks.shifted(FpuWeeks.currentFriday(), byWeeks: -2),
+                       filed: true, state: .filedProcore, overall: 52, hasComment: false,
+                       attachmentCount: 0, submittedBy: nil),
+            FpuWeekRow(weekEnding: FpuWeeks.shifted(FpuWeeks.currentFriday(), byWeeks: -3),
+                       filed: true, state: .filedProcore, overall: 45, hasComment: false,
+                       attachmentCount: 0, submittedBy: nil),
+        ]
+    }
+
+    func uploadFpuPhoto(projectNumber: String, filename: String, contentType: String, data: Data) async throws -> FpuAttachment {
+        try await Task.sleep(for: .milliseconds(300))
+        return FpuAttachment(path: "fpus/\(projectNumber)/mock-\(filename)", name: filename,
+                             size: data.count, type: contentType, kind: "photo")
     }
 
     func createTalk(_ body: CreateToolboxTalkBody) async throws {

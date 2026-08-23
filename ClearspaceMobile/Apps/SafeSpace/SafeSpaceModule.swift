@@ -44,6 +44,7 @@ enum SafeSpaceModule {
                     DrawerItem(id: "talks", label: "Toolbox Talks", icon: "person.2.wave.2"),
                     DrawerItem(id: "forms", label: "Forms", icon: "list.bullet.clipboard"),
                     DrawerItem(id: "daily", label: "Daily Reports", icon: "sun.max"),
+                    DrawerItem(id: "fpus", label: "FPUs", icon: "percent"),
                 ]),
                 DrawerGroup(label: "Library", items: [
                     DrawerItem(id: "topics", label: "Talk Topics", icon: "book", implemented: false),
@@ -54,7 +55,7 @@ enum SafeSpaceModule {
                 ]),
             ],
             defaultDestination: "projects",
-            createActions: ["New Toolbox Talk", "New Daily Report", "Fill a Form"],
+            createActions: ["Log FPU", "New Toolbox Talk", "New Daily Report", "Fill a Form"],
             createSheetTitle: "Create a new record in safe_space",
             searchGroups: SafetySearchScope.allCases.map(\.title),
             primarySearchGroup: { destination in
@@ -67,6 +68,8 @@ enum SafeSpaceModule {
             },
             createView: { action in
                 switch action {
+                case "Log FPU":
+                    return AnyView(FpuEntryFormView(service: service))
                 case "New Daily Report":
                     return AnyView(DailyReportFormView(service: service))
                 case "New Toolbox Talk":
@@ -80,6 +83,7 @@ enum SafeSpaceModule {
                 case "talks": return AnyView(ToolboxTalksView(service: service))
                 case "forms": return AnyView(FormSubmissionsView(service: service))
                 case "daily": return AnyView(DailyReportsView(service: service))
+                case "fpus": return AnyView(FpusView(service: service))
                 case "settings": return AnyView(SettingsView(dataSource: "Live · safe.clearspace.to"))
                 default: return AnyView(SafetyProjectsView(service: service))
                 }

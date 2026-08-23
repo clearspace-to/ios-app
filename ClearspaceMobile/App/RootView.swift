@@ -13,7 +13,7 @@ struct RootView: View {
             case .signedOut:
                 LoginView()
             case .signedIn:
-                if lastSpaceID != nil {
+                if lastSpaceID != nil || launchArgumentsChooseSpace {
                     AppShell(modules: ClearspaceApps.all)
                 } else {
                     SpaceSelectorView(modules: ClearspaceApps.all) { spaceID in
@@ -23,5 +23,14 @@ struct RootView: View {
             }
         }
         .task { await auth.restoreSession() }
+    }
+
+    /// Tooling hook (screenshots / UI tests): `-app=<id>` names the space and
+    /// `-preview` drives the shell directly, so automation never lands on the
+    /// first-run selector. Nothing is persisted — a real first launch still
+    /// gets the selector. See AppShell.applyLaunchArguments.
+    private var launchArgumentsChooseSpace: Bool {
+        let args = ProcessInfo.processInfo.arguments
+        return args.contains("-preview") || args.contains { $0.hasPrefix("-app=") }
     }
 }

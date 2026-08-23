@@ -1,0 +1,162 @@
+import Foundation
+
+// MARK: - safe_space FPU (Field Progress Update) domain models
+// Mirrors frontend/src/pages/fpus in the safe_space repo. The trade percentages
+// live in the shared fpu_project_executions table (also fed by Procore); the
+// comment, photos and draft state live in safe_space's own fpu_reports table.
+
+/// Where a (project, week) stands. Derivation order mirrors the web app:
+/// a filed row wins, then a draft, then the done/expected flags.
+enum FpuState: Equatable {
+    case filedSafeSpace
+    case filedProcore
+    case draft
+    case outstanding
+    case done
+    case notStarted
+
+    static func derive(entrySource: String?, reportStatus: String?, done: Bool, expected: Bool) -> FpuState {
+        if let entrySource { return entrySource == "safe_space" ? .filedSafeSpace : .filedProcore }
+        if reportStatus == "draft" { return .draft }
+        if done { return .done }
+        if expected { return .outstanding }
+        return .notStarted
+    }
+
+    /// Badge text; nil renders no badge.
+    var badge: String? {
+        switch self {
+        case .filedSafeSpace: return "Filed"
+        case .filedProcore: return "Procore"
+        case .draft: return "Draft"
+        case .outstanding: return "Outstanding"
+        case .done: return "Done"
+        case .notStarted: return nil
+        }
+    }
+
+    /// Dashboard sort: what needs attention first.
+    var rank: Int {
+        switch self {
+        case .outstanding: return 0
+        case .draft: return 1
+        case .filedSafeSpace, .filedProcore: return 2
+        case .notStarted: return 3
+        case .done: return 4
+        }
+    }
+}
+
+/// One project's row on the weekly FPU dashboard.
+struct FpuProjectWeek: Identifiable {
+    var id: String { projectNumber }
+    let projectNumber: String
+    let projectName: String
+    let siteSuperName: String?
+    /// The signed-in user is this project's site super.
+    let mine: Bool
+    let state: FpuState
+    /// Mean of the answered trade percentages, 0–100.
+    let overall: Int?
+    let updatedAt: String?
+}
+
+struct FpuWeekOverview {
+    let weekEnding: String
+    let rows: [FpuProjectWeek]
+}
+
+/// One trade division on the FPU form. Keys are the shared table's column
+/// names; the list comes from the API so the app never hardcodes it.
+struct FpuColumn: Identifiable, Hashable {
+    var id: String { key }
+    let key: String
+    let label: String
+}
+
+/// One stored photo/file descriptor, kept verbatim in fpu_reports.attachments.
+struct FpuAttachment: Codable, Identifiable, Hashable {
+    var id: String { path }
+    let path: String
+    let name: String
+    let size: Int
+    let type: String
+    let kind: String
+}
+
+/// Everything the entry form needs for one (project, week).
+struct FpuEntryForm {
+    let weekEnding: String
+    let projectNumber: String
+    let projectName: String
+    let columns: [FpuColumn]
+    /// Starting values: an open draft's own numbers, else this week's filed
+    /// entry, else last week's — the same prefill order as the web form.
+    let prefill: [String: Int]
+    /// Last week's numbers, shown per row as the reference point.
+    let previous: [String: Int]
+    let comment: String
+    let existingAttachments: [FpuAttachment]
+    /// "procore" when this week is currently Procore's row — saving takes it over.
+    let entrySource: String?
+}
+
+/// One week in a project's FPU history (project detail tab).
+struct FpuWeekRow: Identifiable {
+    var id: String { weekEnding }
+    let weekEnding: String
+    let filed: Bool
+    let state: FpuState
+    let overall: Int?
+    let hasComment: Bool
+    let attachmentCount: Int
+    let submittedBy: String?
+
+    var weekLabel: String { FpuWeeks.label(weekEnding) }
+}
+
+/// Sheet target for the FPU entry form.
+struct FpuLogTarget: Identifiable {
+    let projectNumber: String
+    let weekEnding: String
+    var id: String { projectNumber + "|" + weekEnding }
+}
+
+/// Friday math. An FPU week is identified by its Friday ("week ending"), and
+/// the current week's Friday can be in the past (on Sat/Sun) — mirrors the API.
+enum FpuWeeks {
+    private static let utc = TimeZone(identifier: "UTC")!
+
+    private static func formatter(_ format: String, _ zone: TimeZone) -> DateFormatter {
+        let f = DateFormatter()
+        f.dateFormat = format
+        f.timeZone = zone
+        f.locale = Locale(identifier: "en_US_POSIX")
+        return f
+    }
+
+    /// Friday of the Mon–Sun week containing `reference`, as "yyyy-MM-dd".
+    static func currentFriday(reference: Date = Date(), calendar: Calendar = .current) -> String {
+        // Monday-based weekday index: Mon=0 … Sun=6, so Sat/Sun step back to
+        // the Friday just past instead of forward to next week's.
+        let monBased = (calendar.component(.weekday, from: reference) + 5) % 7
+        let friday = calendar.date(byAdding: .day, value: 4 - monBased, to: reference) ?? reference
+        return formatter("yyyy-MM-dd", calendar.timeZone).string(from: friday)
+    }
+
+    /// "2026-08-21" shifted by whole weeks (stays on a Friday).
+    static func shifted(_ iso: String, byWeeks weeks: Int) -> String {
+        guard let date = formatter("yyyy-MM-dd", utc).date(from: iso) else { return iso }
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = utc
+        let moved = calendar.date(byAdding: .day, value: weeks * 7, to: date) ?? date
+        return formatter("yyyy-MM-dd", utc).string(from: moved)
+    }
+
+    /// "2026-08-21" -> "Fri, Aug 21". A calendar date carries no time zone, so
+    /// it is parsed AND rendered in UTC (see SafetyDates.day).
+    static func label(_ iso: String) -> String {
+        guard let date = formatter("yyyy-MM-dd", utc).date(from: iso) else { return iso }
+        return formatter("EEE, MMM d", utc).string(from: date)
+    }
+}

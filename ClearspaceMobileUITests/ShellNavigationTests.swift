@@ -5,7 +5,9 @@ final class ShellNavigationTests: XCTestCase {
 
     private func launchApp(_ extraArgs: [String] = []) -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments = ["-preview"] + extraArgs
+        // These tests assert sales_space content, so pin the space explicitly —
+        // the shell no longer has an implicit default (see SpaceSelectorView).
+        app.launchArguments = ["-preview", "-app=sales_space"] + extraArgs
         app.launch()
         return app
     }

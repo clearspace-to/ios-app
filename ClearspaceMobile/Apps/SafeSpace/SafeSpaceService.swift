@@ -13,6 +13,11 @@ protocol SafeSpaceService {
     func reportDetail(id: String) async throws -> DailyReport
     func createReport(_ body: CreateDailyReportBody) async throws
     func createTalk(_ body: CreateToolboxTalkBody) async throws
+    func fpuOverview(weekEnding: String) async throws -> FpuWeekOverview
+    func fpuForm(projectNumber: String, weekEnding: String) async throws -> FpuEntryForm
+    func submitFpu(projectNumber: String, body: SubmitFpuBody) async throws
+    func fpuWeeks(projectNumber: String) async throws -> [FpuWeekRow]
+    func uploadFpuPhoto(projectNumber: String, filename: String, contentType: String, data: Data) async throws -> FpuAttachment
     func search(query: String) async throws -> [SafetySearchHit]
 }
 
@@ -128,6 +133,56 @@ struct LiveSafeSpaceService: SafeSpaceService {
             deliveredBy: body.deliveredBy
         )
         let _: CreateRecordResponse = try await api.post("/api/talks", body: talkBody)
+    }
+
+    // MARK: - FPUs
+    //
+    // FPU routes are decoded WITHOUT snake_case conversion: entry/previous/values
+    // are keyed by the shared table's column names, which must stay verbatim to
+    // match the `columns` keys.
+
+    func fpuOverview(weekEnding: String) async throws -> FpuWeekOverview {
+        let response: FpuOverviewResponse =
+            try await api.get("/api/fpus", query: ["week_ending": weekEnding], convertSnakeCase: false)
+        return response.toModel()
+    }
+
+    func fpuForm(projectNumber: String, weekEnding: String) async throws -> FpuEntryForm {
+        let response: FpuFormResponse =
+            try await api.get("/api/fpus/\(projectNumber)", query: ["week_ending": weekEnding],
+                              convertSnakeCase: false)
+        return response.toModel()
+    }
+
+    func submitFpu(projectNumber: String, body: SubmitFpuBody) async throws {
+        let _: FpuSubmitResponse =
+            try await api.put("/api/fpus/\(projectNumber)", body: body, convertSnakeCase: false)
+    }
+
+    func fpuWeeks(projectNumber: String) async throws -> [FpuWeekRow] {
+        let response: FpuWeeksResponse =
+            try await api.get("/api/fpus/\(projectNumber)/weeks", convertSnakeCase: false)
+        return response.toModel()
+    }
+
+    /// Two-step upload shared with the web app: the API signs a Storage URL,
+    /// the client PUTs the bytes straight to it (Vercel caps request bodies,
+    /// so files never pass through the API).
+    func uploadFpuPhoto(projectNumber: String, filename: String, contentType: String, data: Data) async throws -> FpuAttachment {
+        let sign: SignUploadResponse = try await api.post(
+            "/api/uploads/sign",
+            body: SignUploadBody(name: filename, type: contentType, size: data.count,
+                                 scope: "fpus/\(projectNumber)"))
+        guard let url = URL(string: sign.signedUrl) else { throw APIError.badResponse }
+        var request = URLRequest(url: url)
+        request.httpMethod = "PUT"
+        request.setValue(contentType, forHTTPHeaderField: "Content-Type")
+        let (_, response) = try await URLSession.shared.upload(for: request, from: data)
+        guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+            throw APIError.badResponse
+        }
+        return FpuAttachment(path: sign.path, name: filename, size: data.count,
+                             type: contentType, kind: "photo")
     }
 
     // MARK: - Search

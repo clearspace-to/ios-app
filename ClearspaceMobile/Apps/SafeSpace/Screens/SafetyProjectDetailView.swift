@@ -15,8 +15,11 @@ struct SafetyProjectDetailView: View {
     @State private var state: LoadState<ProjectSafetySummary> = .loading
     @State private var overview: ProjectOverview?
     @State private var overviewError: String?
+    @State private var fpuWeeks: [FpuWeekRow]?
+    @State private var fpuError: String?
+    @State private var loggingFpu: FpuLogTarget?
     @State private var tab = "Overview"
-    private let tabs = ["Overview", "Trades", "Talks", "Forms", "Reports"]
+    private let tabs = ["Overview", "Trades", "FPUs", "Talks", "Forms", "Reports"]
 
     var body: some View {
         Group {
@@ -44,6 +47,8 @@ struct SafetyProjectDetailView: View {
                     switch tab {
                     case "Trades":
                         tradesSection
+                    case "FPUs":
+                        fpusSection
                     case "Talks":
                         talksSection(summary.talks)
                     case "Forms":
@@ -63,6 +68,14 @@ struct SafetyProjectDetailView: View {
         .onAppear { SafeSpaceModule.lastViewedProjectNumber = projectNumber }
         .task { await load() }
         .refreshable { await load() }
+        .onReceive(NotificationCenter.default.publisher(for: .safeSpaceRecordCreated)) { _ in
+            Task { await load() }
+        }
+        .sheet(item: $loggingFpu) { target in
+            FpuEntryFormView(service: service,
+                             fixedProjectNumber: target.projectNumber,
+                             initialWeekEnding: target.weekEnding)
+        }
     }
 
     // MARK: - Overview
@@ -135,6 +148,55 @@ struct SafetyProjectDetailView: View {
         }
     }
 
+    // MARK: - FPUs
+
+    /// Every listed week is expected, so gaps read as Outstanding. Any row —
+    /// filed or not — opens the log sheet for that week.
+    @ViewBuilder
+    private var fpusSection: some View {
+        Section {
+            if let weeks = fpuWeeks {
+                if weeks.isEmpty {
+                    Text("No FPUs on record").foregroundStyle(.secondary)
+                } else {
+                    ForEach(weeks) { week in
+                        Button {
+                            loggingFpu = FpuLogTarget(projectNumber: projectNumber,
+                                                      weekEnding: week.weekEnding)
+                        } label: {
+                            RecordRow(title: week.weekLabel,
+                                      subtitle: fpuSubtitle(week),
+                                      trailingValue: week.overall.map { "\($0)%" },
+                                      badge: week.state.badge)
+                        }
+                        .foregroundStyle(.primary)
+                        .listRowBackground(week.state == .outstanding ? Color.orange.opacity(0.08) : nil)
+                    }
+                }
+            } else if let fpuError {
+                Text(fpuError).foregroundStyle(.secondary).font(.footnote)
+            } else {
+                ProgressView()
+            }
+        } header: {
+            if let weeks = fpuWeeks, !weeks.isEmpty {
+                Text("Weekly FPUs — \(weeks.filter(\.filed).count) of \(weeks.count) weeks filed")
+            } else {
+                Text("Weekly FPUs")
+            }
+        }
+    }
+
+    private func fpuSubtitle(_ week: FpuWeekRow) -> String {
+        var parts: [String] = []
+        if week.hasComment { parts.append("Notes") }
+        if week.attachmentCount > 0 {
+            parts.append("\(week.attachmentCount) photo\(week.attachmentCount == 1 ? "" : "s")")
+        }
+        if let by = week.submittedBy, !by.isEmpty { parts.append(by) }
+        return parts.isEmpty ? "Tap to log" : parts.joined(separator: " · ")
+    }
+
     // MARK: - Records
 
     @ViewBuilder
@@ -187,10 +249,11 @@ struct SafetyProjectDetailView: View {
     }
 
     private func load() async {
-        // Two independent requests: a dead Wrike or Procore must not empty the
-        // record tabs, and a slow one must not delay them.
+        // Three independent requests: a dead Wrike, Procore or shared FPU table
+        // must not empty the record tabs, and a slow one must not delay them.
         async let summary = service.projectSummary(projectNumber: projectNumber)
         async let detail = service.projectOverview(projectNumber: projectNumber)
+        async let weeks = service.fpuWeeks(projectNumber: projectNumber)
 
         do {
             state = .loaded(try await summary)
@@ -203,6 +266,13 @@ struct SafetyProjectDetailView: View {
         } catch {
             overview = nil
             overviewError = error.localizedDescription
+        }
+        do {
+            fpuWeeks = try await weeks
+            fpuError = nil
+        } catch {
+            fpuWeeks = nil
+            fpuError = error.localizedDescription
         }
     }
 }

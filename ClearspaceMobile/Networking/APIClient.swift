@@ -48,6 +48,10 @@ struct APIClient {
         try await send(path: path, method: "POST", query: [:], body: body)
     }
 
+    func put<T: Decodable, B: Encodable>(_ path: String, body: B, convertSnakeCase: Bool = true) async throws -> T {
+        try await send(path: path, method: "PUT", query: [:], body: body, convertSnakeCase: convertSnakeCase)
+    }
+
     private func send<T: Decodable, B: Encodable>(path: String, method: String, query: [String: String], body: B?, convertSnakeCase: Bool = true) async throws -> T {
         var token = try await auth.validAccessToken()
         var attempt = 0

@@ -47,6 +47,7 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: to.clearspace.mobile.uitests
+        GENERATE_INFOPLIST_FILE: YES
 
   ClearspaceMobileTests:
     type: bundle.unit-test
@@ -58,6 +59,7 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: to.clearspace.mobile.tests
+        GENERATE_INFOPLIST_FILE: YES
 
 schemes:
   ClearspaceMobile:
