@@ -9,6 +9,11 @@ struct FpusView: View {
     @State private var weekEnding = FpuWeeks.currentFriday()
     @State private var state: LoadState<FpuWeekOverview> = .loading
     @State private var logging: FpuLogTarget?
+    /// "Mine" plus any of the FpuState.filterCategory buckets. Defaults to
+    /// mine-only per product ask; all are independently toggleable.
+    @State private var activeFilters: Set<String> = ["Mine"]
+
+    private static let statusOptions = ["Outstanding", "Draft", "Complete"]
 
     private var isCurrentWeek: Bool { weekEnding >= FpuWeeks.currentFriday() }
 
@@ -20,11 +25,22 @@ struct FpusView: View {
             case .failed(let message):
                 LoadStateView(message: message, isError: true) { await load() }
             case .loaded(let overview):
-                let rows = overview.rows.sorted {
-                    ($0.state.rank, $0.projectNumber) < ($1.state.rank, $1.projectNumber)
-                }
+                let statusFilters = activeFilters.subtracting(["Mine"])
+                let rows = overview.rows
+                    .filter { row in
+                        (!activeFilters.contains("Mine") || row.mine)
+                            && (statusFilters.isEmpty || row.state.filterCategory.map(statusFilters.contains) == true)
+                    }
+                    .sorted {
+                        ($0.state.rank, $0.projectNumber) < ($1.state.rank, $1.projectNumber)
+                    }
                 List {
                     weekPicker
+
+                    FilterChipsRow(options: ["Mine"] + Self.statusOptions, selected: $activeFilters)
+                        .listRowInsets(EdgeInsets())
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
 
                     Section {
                         ForEach(rows) { row in
@@ -48,7 +64,9 @@ struct FpusView: View {
                 .bottomBarInset()
                 .overlay {
                     if rows.isEmpty {
-                        LoadStateView(message: "No projects on record for this week.")
+                        LoadStateView(message: activeFilters.isEmpty
+                                      ? "No projects on record for this week."
+                                      : "No projects match this filter.")
                     }
                 }
             }
@@ -105,7 +123,13 @@ struct FpusView: View {
 
     private func load() async {
         do {
-            state = .loaded(try await service.fpuOverview(weekEnding: weekEnding))
+            let overview = try await service.fpuOverview(weekEnding: weekEnding)
+            state = .loaded(overview)
+        } catch is CancellationError {
+            // Superseded by a newer load (e.g. week changed mid-request) — the
+            // newer task owns `state` now, so leave it alone.
+        } catch let error as URLError where error.code == .cancelled {
+            // Same as above: URLSession surfaces SwiftUI's task cancellation this way.
         } catch {
             state = .failed(error.localizedDescription)
         }

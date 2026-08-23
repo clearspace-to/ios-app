@@ -45,6 +45,17 @@ enum FpuState: Equatable {
         case .done: return 4
         }
     }
+
+    /// Status-filter bucket for the FpusView filter chips. Rows not expected
+    /// this week (`notStarted`) have no bucket and drop out of any status filter.
+    var filterCategory: String? {
+        switch self {
+        case .outstanding: return "Outstanding"
+        case .draft: return "Draft"
+        case .filedSafeSpace, .filedProcore, .done: return "Complete"
+        case .notStarted: return nil
+        }
+    }
 }
 
 /// One project's row on the weekly FPU dashboard.
