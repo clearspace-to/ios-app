@@ -2,10 +2,14 @@ import SwiftUI
 
 struct DailyReportFormView: View {
     let service: SafeSpaceService
+    /// Set when launched from a project's own "New Daily Report" action, so the
+    /// project field arrives pre-filled instead of relying on the module-wide
+    /// `lastViewedProjectNumber` fallback in `loadProjects()`.
+    let preselectedProjectNumber: String?
     @Environment(\.dismiss) private var dismiss
 
     @State private var projects: [SafetyProject] = []
-    @State private var selectedProject = ""
+    @State private var selectedProject: String
     @State private var reportDate = Date()
     @State private var weather = ""
     @State private var crewLines: [CrewEntry] = [CrewEntry()]
@@ -18,6 +22,12 @@ struct DailyReportFormView: View {
     @State private var notes = ""
     @State private var submitting = false
     @State private var errorMessage: String?
+
+    init(service: SafeSpaceService, preselectedProjectNumber: String? = nil) {
+        self.service = service
+        self.preselectedProjectNumber = preselectedProjectNumber
+        _selectedProject = State(initialValue: preselectedProjectNumber ?? "")
+    }
 
     private var canSubmit: Bool {
         !selectedProject.isEmpty
@@ -121,7 +131,8 @@ struct DailyReportFormView: View {
 
     private func loadProjects() async {
         projects = (try? await service.projects()) ?? []
-        if selectedProject.isEmpty, let last = SafeSpaceModule.lastViewedProjectNumber,
+        if preselectedProjectNumber == nil, selectedProject.isEmpty,
+           let last = SafeSpaceModule.lastViewedProjectNumber,
            projects.contains(where: { $0.projectNumber == last }) {
             selectedProject = last
         }

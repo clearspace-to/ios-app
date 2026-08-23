@@ -19,6 +19,7 @@ struct SafetyProjectDetailView: View {
     @State private var fpuError: String?
     @State private var loggingFpu: FpuLogTarget?
     @State private var tab = "Overview"
+    @State private var showNewReport = false
     private let tabs = ["Overview", "Trades", "FPUs", "Talks", "Forms", "Reports"]
 
     var body: some View {
@@ -75,6 +76,9 @@ struct SafetyProjectDetailView: View {
             FpuEntryFormView(service: service,
                              fixedProjectNumber: target.projectNumber,
                              initialWeekEnding: target.weekEnding)
+        }
+        .sheet(isPresented: $showNewReport) {
+            DailyReportFormView(service: service, preselectedProjectNumber: projectNumber)
         }
     }
 
@@ -235,6 +239,11 @@ struct SafetyProjectDetailView: View {
     @ViewBuilder
     private func reportsSection(_ reports: [DailyReport]) -> some View {
         Section("Daily Reports") {
+            Button {
+                showNewReport = true
+            } label: {
+                Label("New Daily Report", systemImage: "plus.circle")
+            }
             if reports.isEmpty {
                 Text("No reports on file").foregroundStyle(.secondary)
             }
