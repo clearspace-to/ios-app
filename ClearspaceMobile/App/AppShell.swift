@@ -45,11 +45,19 @@ struct AppShell: View {
                     .navigationDestination(for: DetailRoute.self) { route in
                         modules.first { $0.id == route.module }?.detail(route)
                     }
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarLeading) {
+                            Button(action: openDrawer) {
+                                Image(systemName: "chevron.backward")
+                            }
+                            .accessibilityLabel("Menu")
+                        }
+                    }
             }
             .overlay(alignment: .bottom) {
                 if !paletteOpen {
                     BottomBar(
-                        onMenu: { withAnimation(.spring(response: 0.32, dampingFraction: 0.86)) { drawerOpen = true } },
+                        onMenu: openDrawer,
                         onSearch: { paletteOpen = true },
                         onCreate: { createOpen = true }
                     )
@@ -166,6 +174,10 @@ struct AppShell: View {
         case .detail(let route):
             path.append(route)
         }
+    }
+
+    private func openDrawer() {
+        withAnimation(.spring(response: 0.32, dampingFraction: 0.86)) { drawerOpen = true }
     }
 
     private func closeDrawer() {
