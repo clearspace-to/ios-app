@@ -265,6 +265,40 @@ struct MockSafeSpaceService: SafeSpaceService {
         try await Task.sleep(for: .milliseconds(400))
     }
 
+    // MARK: - Schedule change requests
+
+    func scheduleChanges(projectNumber: String) async throws -> ScheduleChanges {
+        ScheduleChanges(linked: true, available: true, changes: [
+            ScheduleChange(procoreRcId: 9001, status: "pending",
+                           taskName: "Drywall — Level 3",
+                           summary: "Start → 2026-09-01 · Finish → 2026-09-15",
+                           reason: "Permit delay", notes: "",
+                           filedBy: "marco.ruiz@clearspace.to", requestedBy: "",
+                           createdAt: "Aug 22, 2026 · 9:14 AM"),
+            ScheduleChange(procoreRcId: 8990, status: "accepted",
+                           taskName: "Electrical rough-in — Level 2",
+                           summary: "40% complete",
+                           reason: "", notes: "",
+                           filedBy: "", requestedBy: "Jane Doe on Mon Aug 3",
+                           createdAt: nil),
+        ])
+    }
+
+    func scheduleTasks(projectNumber: String) async throws -> [ScheduleTask] {
+        [
+            ScheduleTask(id: 101, name: "Drywall — Level 3",
+                         start: "2026-08-25", finish: "2026-09-08", percentage: 10),
+            ScheduleTask(id: 102, name: "Electrical rough-in — Level 2",
+                         start: "2026-08-18", finish: "2026-09-01", percentage: 35),
+            ScheduleTask(id: 103, name: "Millwork install — Kitchen",
+                         start: "2026-09-15", finish: "2026-09-29", percentage: nil),
+        ]
+    }
+
+    func createScheduleChange(projectNumber: String, body: CreateScheduleChangeBody) async throws {
+        try await Task.sleep(for: .milliseconds(400))
+    }
+
     func reports() async throws -> [DailyReport] { Self.reports }
 
     func reportDetail(id: String) async throws -> DailyReport {

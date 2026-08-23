@@ -179,6 +179,80 @@ final class SafeSpaceTests: XCTestCase {
         XCTAssertFalse(app.staticTexts["This week is locked — past FPUs can't be edited."].exists)
     }
 
+    func testProjectDetailScheduleTabListsChangeRequests() {
+        let app = launchApp(["-app=safe_space"])
+
+        let project = app.staticTexts["Riverside Tower — Floors 8-12"]
+        XCTAssertTrue(project.waitForExistence(timeout: 10))
+        project.tap()
+
+        let scheduleTab = app.buttons["Schedule"]
+        XCTAssertTrue(scheduleTab.waitForExistence(timeout: 5), "Schedule tab missing from project detail")
+        scheduleTab.tap()
+
+        XCTAssertTrue(app.staticTexts["Drywall — Level 3"].waitForExistence(timeout: 5),
+                      "Schedule tab did not list the project's change requests")
+        XCTAssertTrue(app.staticTexts["Pending"].exists, "Procore status badge missing")
+        XCTAssertTrue(app.buttons["Request Schedule Change"].exists,
+                      "Request Schedule Change button missing")
+    }
+
+    func testScheduleChangeFilesAfterConfirmation() {
+        let app = launchApp(["-app=safe_space"])
+
+        let project = app.staticTexts["Riverside Tower — Floors 8-12"]
+        XCTAssertTrue(project.waitForExistence(timeout: 10))
+        project.tap()
+        app.buttons["Schedule"].tap()
+
+        app.buttons["Request Schedule Change"].tap()
+        XCTAssertTrue(app.navigationBars["Schedule Change"].waitForExistence(timeout: 5))
+
+        // File is disabled until a task is picked and a change requested.
+        XCTAssertFalse(app.buttons["File"].isEnabled)
+
+        app.staticTexts["Schedule task"].firstMatch.tap()
+        // The project's Schedule tab (behind the sheet) also shows this task
+        // name — the current-dates line is unique to the picker row.
+        let task = app.staticTexts["2026-08-25 → 2026-09-08 · 10% complete"]
+        XCTAssertTrue(task.waitForExistence(timeout: 5), "Task picker did not list Procore tasks")
+        task.tap()
+
+        let newStart = app.switches["New start"].firstMatch
+        XCTAssertTrue(newStart.waitForExistence(timeout: 5))
+        // SwiftUI toggles only respond on the nested switch control.
+        let knob = newStart.switches.firstMatch
+        (knob.exists ? knob : newStart).tap()
+        XCTAssertTrue(app.staticTexts["Starts"].waitForExistence(timeout: 5),
+                      "Toggling New start did not reveal the date picker")
+
+        let file = app.buttons["File"]
+        XCTAssertTrue(file.isEnabled, "File should enable once a change is requested")
+        file.tap()
+
+        // Filing is irreversible, so it confirms first.
+        let confirm = app.buttons["File into Procore"]
+        XCTAssertTrue(confirm.waitForExistence(timeout: 5), "Confirmation dialog did not appear")
+        confirm.tap()
+
+        // Sheet dismisses back to the Schedule tab.
+        XCTAssertTrue(app.buttons["Request Schedule Change"].waitForExistence(timeout: 10),
+                      "Filing did not return to the Schedule tab")
+    }
+
+    func testCreateSheetOffersScheduleChange() {
+        let app = launchApp(["-app=safe_space"])
+        XCTAssertTrue(app.navigationBars["Projects"].waitForExistence(timeout: 10))
+
+        app.buttons["bottomBar.create"].tap()
+        let action = app.buttons["Schedule Change"]
+        XCTAssertTrue(action.waitForExistence(timeout: 5), "Schedule Change missing from the create sheet")
+        action.tap()
+
+        XCTAssertTrue(app.navigationBars["Schedule Change"].waitForExistence(timeout: 5),
+                      "Schedule Change did not present the form")
+    }
+
     func testCommandBarSearchesSafeSpaceRecordsScopedToScreen() {
         let app = launchApp(["-app=safe_space", "-screen=daily"])
 

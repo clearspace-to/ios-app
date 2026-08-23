@@ -55,7 +55,7 @@ enum SafeSpaceModule {
                 ]),
             ],
             defaultDestination: "projects",
-            createActions: ["Log FPU", "New Toolbox Talk", "New Daily Report", "Fill a Form"],
+            createActions: ["Log FPU", "New Toolbox Talk", "New Daily Report", "Schedule Change", "Fill a Form"],
             createSheetTitle: "Create a new record in safe_space",
             searchGroups: SafetySearchScope.allCases.map(\.title),
             primarySearchGroup: { destination in
@@ -74,6 +74,8 @@ enum SafeSpaceModule {
                     return AnyView(DailyReportFormView(service: service))
                 case "New Toolbox Talk":
                     return AnyView(ToolboxTalkFormView(service: service))
+                case "Schedule Change":
+                    return AnyView(ScheduleChangeFormView(service: service))
                 default:
                     return nil
                 }

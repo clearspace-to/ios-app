@@ -18,9 +18,14 @@ struct SafetyProjectDetailView: View {
     @State private var fpuWeeks: [FpuWeekRow]?
     @State private var fpuError: String?
     @State private var loggingFpu: FpuLogTarget?
-    @State private var tab = "Overview"
+    @State private var scheduleChanges: ScheduleChanges?
+    @State private var scheduleError: String?
+    @State private var showNewScheduleChange = false
+    @State private var tab = "Info"
     @State private var showNewReport = false
-    private let tabs = ["Overview", "Trades", "FPUs", "Talks", "Forms", "Reports"]
+    // Short labels so seven segments fit a phone — mirrors the web app, which
+    // shortened its tab names for the same reason ("Daily" is daily reports).
+    private let tabs = ["Info", "Trades", "FPUs", "Schedule", "Talks", "Forms", "Daily"]
 
     var body: some View {
         Group {
@@ -50,11 +55,13 @@ struct SafetyProjectDetailView: View {
                         tradesSection
                     case "FPUs":
                         fpusSection
+                    case "Schedule":
+                        scheduleSection
                     case "Talks":
                         talksSection(summary.talks)
                     case "Forms":
                         formsSection(summary.forms)
-                    case "Reports":
+                    case "Daily":
                         reportsSection(summary.reports)
                     default:
                         overviewSection(fallback: summary.project)
@@ -79,6 +86,9 @@ struct SafetyProjectDetailView: View {
         }
         .sheet(isPresented: $showNewReport) {
             DailyReportFormView(service: service, preselectedProjectNumber: projectNumber)
+        }
+        .sheet(isPresented: $showNewScheduleChange) {
+            ScheduleChangeFormView(service: service, fixedProjectNumber: projectNumber)
         }
     }
 
@@ -191,6 +201,75 @@ struct SafetyProjectDetailView: View {
         }
     }
 
+    // MARK: - Schedule
+
+    /// Status and history of this project's Procore schedule change requests.
+    /// Statuses are Procore's, live; reviewing happens in Procore, so rows are
+    /// read-only here — the only action is filing a new request.
+    @ViewBuilder
+    private var scheduleSection: some View {
+        Section {
+            if let scheduleChanges {
+                if scheduleChanges.linked {
+                    Button {
+                        showNewScheduleChange = true
+                    } label: {
+                        Label("Request Schedule Change", systemImage: "plus.circle")
+                    }
+                }
+                if !scheduleChanges.linked {
+                    Text("This project isn't linked to Procore.")
+                        .foregroundStyle(.secondary)
+                } else if scheduleChanges.changes.isEmpty {
+                    Text(scheduleChanges.available
+                         ? "No schedule change requests yet — file one and the PM reviews it in Procore."
+                         : "Procore is unreachable right now — try again shortly.")
+                        .foregroundStyle(.secondary)
+                        .font(.footnote)
+                } else {
+                    ForEach(scheduleChanges.changes) { change in
+                        VStack(alignment: .leading, spacing: 3) {
+                            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                                Text(change.taskName.isEmpty ? "(task unnamed)" : change.taskName)
+                                    .font(.body)
+                                    .lineLimit(1)
+                                Spacer(minLength: 4)
+                                StageBadge(text: change.statusBadge)
+                            }
+                            if !change.summary.isEmpty {
+                                Text(change.summary)
+                                    .font(.footnote)
+                                    .foregroundStyle(.secondary)
+                                    .lineLimit(2)
+                            }
+                            if !change.reason.isEmpty {
+                                Text(change.reason)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                    .lineLimit(1)
+                            }
+                            Text([change.createdAt, change.byLine].compactMap { $0 }
+                                .filter { $0 != "—" }.joined(separator: " · "))
+                                .font(.caption)
+                                .foregroundStyle(.tertiary)
+                        }
+                        .padding(.vertical, 2)
+                    }
+                }
+            } else if let scheduleError {
+                Text(scheduleError).foregroundStyle(.secondary).font(.footnote)
+            } else {
+                ProgressView()
+            }
+        } header: {
+            Text("Schedule change requests")
+        } footer: {
+            if scheduleChanges?.linked == true, scheduleChanges?.available == true {
+                Text("Reviewed in Procore's Schedule tool — statuses here are live.")
+            }
+        }
+    }
+
     private func fpuSubtitle(_ week: FpuWeekRow) -> String {
         var parts: [String] = []
         if week.hasComment { parts.append("Notes") }
@@ -258,11 +337,12 @@ struct SafetyProjectDetailView: View {
     }
 
     private func load() async {
-        // Three independent requests: a dead Wrike, Procore or shared FPU table
-        // must not empty the record tabs, and a slow one must not delay them.
+        // Independent requests: a dead Wrike, Procore or shared FPU table must
+        // not empty the record tabs, and a slow one must not delay them.
         async let summary = service.projectSummary(projectNumber: projectNumber)
         async let detail = service.projectOverview(projectNumber: projectNumber)
         async let weeks = service.fpuWeeks(projectNumber: projectNumber)
+        async let schedule = service.scheduleChanges(projectNumber: projectNumber)
 
         do {
             state = .loaded(try await summary)
@@ -282,6 +362,13 @@ struct SafetyProjectDetailView: View {
         } catch {
             fpuWeeks = nil
             fpuError = error.localizedDescription
+        }
+        do {
+            scheduleChanges = try await schedule
+            scheduleError = nil
+        } catch {
+            scheduleChanges = nil
+            scheduleError = error.localizedDescription
         }
     }
 }
