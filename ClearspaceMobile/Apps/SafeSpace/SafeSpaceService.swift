@@ -23,6 +23,7 @@ protocol SafeSpaceService: SafetySearchLists {
     func submitFpu(projectNumber: String, body: SubmitFpuBody) async throws
     func fpuWeeks(projectNumber: String) async throws -> [FpuWeekRow]
     func uploadFpuPhoto(projectNumber: String, filename: String, contentType: String, data: Data) async throws -> FpuAttachment
+    func uploadPhoto(scope: String, filename: String, contentType: String, data: Data) async throws -> FpuAttachment
     func scheduleChanges(projectNumber: String) async throws -> ScheduleChanges
     func scheduleMilestones(projectNumber: String) async throws -> [ScheduleMilestone]
     func createScheduleChange(projectNumber: String, body: CreateScheduleChangeBody) async throws
@@ -176,11 +177,11 @@ struct LiveSafeSpaceService: SafeSpaceService {
     /// Two-step upload shared with the web app: the API signs a Storage URL,
     /// the client PUTs the bytes straight to it (Vercel caps request bodies,
     /// so files never pass through the API).
-    func uploadFpuPhoto(projectNumber: String, filename: String, contentType: String, data: Data) async throws -> FpuAttachment {
+    func uploadPhoto(scope: String, filename: String, contentType: String, data: Data) async throws -> FpuAttachment {
         let sign: SignUploadResponse = try await api.post(
             "/api/uploads/sign",
             body: SignUploadBody(name: filename, type: contentType, size: data.count,
-                                 scope: "fpus/\(projectNumber)"))
+                                 scope: scope))
         guard let url = URL(string: sign.signedUrl) else { throw APIError.badResponse }
         var request = URLRequest(url: url)
         request.httpMethod = "PUT"
@@ -191,6 +192,11 @@ struct LiveSafeSpaceService: SafeSpaceService {
         }
         return FpuAttachment(path: sign.path, name: filename, size: data.count,
                              type: contentType, kind: "photo")
+    }
+
+    func uploadFpuPhoto(projectNumber: String, filename: String, contentType: String, data: Data) async throws -> FpuAttachment {
+        try await uploadPhoto(scope: "fpus/\(projectNumber)", filename: filename,
+                              contentType: contentType, data: data)
     }
 
     // MARK: - Schedule change requests

@@ -255,10 +255,15 @@ struct MockSafeSpaceService: SafeSpaceService {
         ]
     }
 
-    func uploadFpuPhoto(projectNumber: String, filename: String, contentType: String, data: Data) async throws -> FpuAttachment {
+    func uploadPhoto(scope: String, filename: String, contentType: String, data: Data) async throws -> FpuAttachment {
         try await Task.sleep(for: .milliseconds(300))
-        return FpuAttachment(path: "fpus/\(projectNumber)/mock-\(filename)", name: filename,
+        return FpuAttachment(path: "\(scope)/mock-\(filename)", name: filename,
                              size: data.count, type: contentType, kind: "photo")
+    }
+
+    func uploadFpuPhoto(projectNumber: String, filename: String, contentType: String, data: Data) async throws -> FpuAttachment {
+        try await uploadPhoto(scope: "fpus/\(projectNumber)", filename: filename,
+                              contentType: contentType, data: data)
     }
 
     func createTalk(_ body: CreateToolboxTalkBody) async throws {

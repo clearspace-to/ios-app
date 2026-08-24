@@ -1,3 +1,4 @@
+import PhotosUI
 import SwiftUI
 
 struct DailyReportFormView: View {
@@ -18,7 +19,11 @@ struct DailyReportFormView: View {
     @State private var workPerformed = ""
     @State private var hazardsObserved = ""
     @State private var notes = ""
+    @State private var photoItems: [PhotosPickerItem] = []
+    @State private var photos: [PickedPhoto] = []
+    @State private var showCamera = false
     @State private var submitting = false
+    @State private var progressText: String?
     @State private var errorMessage: String?
 
     init(service: SafeSpaceService, preselectedProjectNumber: String? = nil) {
@@ -108,6 +113,41 @@ struct DailyReportFormView: View {
                     TextField("Additional notes", text: $notes, axis: .vertical)
                         .lineLimit(2...6)
                 }
+
+                Section {
+                    ForEach(photos) { photo in
+                        HStack(spacing: 12) {
+                            Image(uiImage: photo.thumbnail)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 44, height: 44)
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(photo.name).font(.subheadline).lineLimit(1)
+                                Text(photo.sizeLabel).font(.caption).foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                    .onDelete { photos.remove(atOffsets: $0) }
+
+                    PhotosPicker(selection: $photoItems, maxSelectionCount: 12, matching: .images) {
+                        Label("Choose from Library", systemImage: "photo.badge.plus")
+                    }
+
+                    if UIImagePickerController.isSourceTypeAvailable(.camera) {
+                        Button {
+                            showCamera = true
+                        } label: {
+                            Label("Take Photo", systemImage: "camera")
+                        }
+                    }
+                } header: {
+                    Text("Photos")
+                } footer: {
+                    if let progressText {
+                        Text(progressText)
+                    }
+                }
             }
             .navigationTitle("New Daily Report")
             .navigationBarTitleDisplayMode(.inline)
@@ -132,6 +172,19 @@ struct DailyReportFormView: View {
                 Button("OK") { errorMessage = nil }
             } message: {
                 Text(errorMessage ?? "")
+            }
+            .onChange(of: photoItems) { _, items in
+                Task { await importPhotos(items) }
+            }
+            .fullScreenCover(isPresented: $showCamera) {
+                CameraView { image in
+                    Task {
+                        if let photo = await pickedPhoto(from: image, index: photos.count + 1,
+                                                         prefix: "report-photo") {
+                            photos.append(photo)
+                        }
+                    }
+                }
             }
             .task { await loadProjects() }
             .task(id: selectedProject) { await loadTrades() }
@@ -178,27 +231,53 @@ struct DailyReportFormView: View {
         committedTrades = overview?.trades
     }
 
+    private func importPhotos(_ items: [PhotosPickerItem]) async {
+        for item in items {
+            guard let data = try? await item.loadTransferable(type: Data.self),
+                  let image = UIImage(data: data),
+                  let jpeg = image.jpegData(compressionQuality: 0.8) else { continue }
+            let thumbnail = await image.byPreparingThumbnail(ofSize: CGSize(width: 132, height: 132)) ?? image
+            photos.append(PickedPhoto(name: "report-photo-\(photos.count + 1).jpg",
+                                      data: jpeg, thumbnail: thumbnail))
+        }
+    }
+
     private func submit() async {
         submitting = true
-        defer { submitting = false }
-
-        let validCrew = crewLines.filter { !$0.tradeName.trimmingCharacters(in: .whitespaces).isEmpty }
-        let body = CreateDailyReportBody(
-            projectNumber: selectedProject,
-            reportDate: Self.dateString(reportDate),
-            weather: "",
-            crew: validCrew.map { .init(tradeName: $0.tradeName.trimmingCharacters(in: .whitespaces),
-                                        headcount: $0.headcount) },
-            workPerformed: workPerformed.trimmingCharacters(in: .whitespaces),
-            hazardsObserved: hazardsObserved.trimmingCharacters(in: .whitespaces),
-            toolboxTalkDelivered: false,
-            visitors: "",
-            deliveries: "",
-            incidents: false,
-            notes: notes.trimmingCharacters(in: .whitespaces)
-        )
+        defer {
+            submitting = false
+            progressText = nil
+        }
 
         do {
+            var attachments: [FpuAttachment] = []
+            for (index, photo) in photos.enumerated() {
+                progressText = "Uploading photo \(index + 1) of \(photos.count)…"
+                attachments.append(try await service.uploadPhoto(
+                    scope: "daily-reports/\(selectedProject)",
+                    filename: photo.name,
+                    contentType: "image/jpeg",
+                    data: photo.data))
+            }
+            progressText = photos.isEmpty ? nil : "Saving…"
+
+            let validCrew = crewLines.filter { !$0.tradeName.trimmingCharacters(in: .whitespaces).isEmpty }
+            let body = CreateDailyReportBody(
+                projectNumber: selectedProject,
+                reportDate: Self.dateString(reportDate),
+                weather: "",
+                crew: validCrew.map { .init(tradeName: $0.tradeName.trimmingCharacters(in: .whitespaces),
+                                            headcount: $0.headcount) },
+                workPerformed: workPerformed.trimmingCharacters(in: .whitespaces),
+                hazardsObserved: hazardsObserved.trimmingCharacters(in: .whitespaces),
+                toolboxTalkDelivered: false,
+                visitors: "",
+                deliveries: "",
+                incidents: false,
+                notes: notes.trimmingCharacters(in: .whitespaces),
+                attachments: attachments
+            )
+
             try await service.createReport(body)
             NotificationCenter.default.post(name: .safeSpaceRecordCreated, object: nil)
             dismiss()

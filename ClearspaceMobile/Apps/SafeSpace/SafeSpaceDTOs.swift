@@ -226,6 +226,7 @@ struct CreateDailyReportBody: Encodable {
     let deliveries: String
     let incidents: Bool
     let notes: String
+    let attachments: [FpuAttachment]
 
     struct CrewLineBody: Encodable {
         let tradeName: String

@@ -21,6 +21,7 @@ struct FpuEntryFormView: View {
     @State private var comment = ""
     @State private var photoItems: [PhotosPickerItem] = []
     @State private var photos: [PickedPhoto] = []
+    @State private var showCamera = false
     @State private var submitting = false
     @State private var progressText: String?
     @State private var errorMessage: String?
@@ -111,6 +112,16 @@ struct FpuEntryFormView: View {
                 guard !items.isEmpty else { return }
                 photoItems = []
                 Task { await importPhotos(items) }
+            }
+            .fullScreenCover(isPresented: $showCamera) {
+                CameraView { image in
+                    Task {
+                        if let photo = await pickedPhoto(from: image, index: photos.count + 1,
+                                                         prefix: "fpu-photo") {
+                            photos.append(photo)
+                        }
+                    }
+                }
             }
             .disabled(submitting)
             .interactiveDismissDisabled(submitting)
@@ -215,7 +226,15 @@ struct FpuEntryFormView: View {
             .onDelete { photos.remove(atOffsets: $0) }
 
             PhotosPicker(selection: $photoItems, maxSelectionCount: 12, matching: .images) {
-                Label("Add Photos", systemImage: "photo.badge.plus")
+                Label("Choose from Library", systemImage: "photo.badge.plus")
+            }
+
+            if UIImagePickerController.isSourceTypeAvailable(.camera) {
+                Button {
+                    showCamera = true
+                } label: {
+                    Label("Take Photo", systemImage: "camera")
+                }
             }
         } header: {
             Text("Photos")
@@ -433,13 +452,3 @@ private struct FpuDivisionRow: View {
     }
 }
 
-private struct PickedPhoto: Identifiable {
-    let id = UUID()
-    let name: String
-    let data: Data
-    let thumbnail: UIImage
-
-    var sizeLabel: String {
-        ByteCountFormatter.string(fromByteCount: Int64(data.count), countStyle: .file)
-    }
-}

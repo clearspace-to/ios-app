@@ -17,6 +17,7 @@
 		21599C7FA689CC2895E4B5B9 /* FpuDTOs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E59ACA6142C7DCEC3454004 /* FpuDTOs.swift */; };
 		2342EAA0A6DF2618575C68FC /* DailyReportsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9BBE145E331B6E3AC1512CD /* DailyReportsView.swift */; };
 		2585B5E0C59FA17F5B2EA905 /* MockSafeSpaceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A86727D29225398FB5282226 /* MockSafeSpaceService.swift */; };
+		PA01ATTACH0001BUILDFILE01 /* PhotoAttachments.swift in Sources */ = {isa = PBXBuildFile; fileRef = PA01ATTACH0001FILEREF001 /* PhotoAttachments.swift */; };
 		27F023D1F290FBF08C28F08A /* SafeSpaceModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE808A6E2C60A28A34FD4078 /* SafeSpaceModels.swift */; };
 		28F8CC6DD7728F8DFDDC24F1 /* FpuStepTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91BA40A042AB62323032E95D /* FpuStepTests.swift */; };
 		2D5BB84C9486123A69CB291F /* NavDrawer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D2D9A326A07C7E0F776B406 /* NavDrawer.swift */; };
@@ -109,6 +110,7 @@
 		294AAB06F7769CD612E53E22 /* OpportunityDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpportunityDetailView.swift; sourceTree = "<group>"; };
 		2A42AD858C3124E7F4D57E98 /* ShellNavigationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShellNavigationTests.swift; sourceTree = "<group>"; };
 		2D0FB4CB64CEA8EED47086AB /* SafeSpaceService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafeSpaceService.swift; sourceTree = "<group>"; };
+		PA01ATTACH0001FILEREF001 /* PhotoAttachments.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoAttachments.swift; sourceTree = "<group>"; };
 		2E59ACA6142C7DCEC3454004 /* FpuDTOs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FpuDTOs.swift; sourceTree = "<group>"; };
 		2FE68922EB60E6FE1D770B27 /* Glass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Glass.swift; sourceTree = "<group>"; };
 		305B98ED19FABA0A16B5AB27 /* ToolboxTalkFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolboxTalkFormView.swift; sourceTree = "<group>"; };
@@ -318,6 +320,7 @@
 				2E59ACA6142C7DCEC3454004 /* FpuDTOs.swift */,
 				2342847D1778F7A28CF62B7C /* FpuModels.swift */,
 				A86727D29225398FB5282226 /* MockSafeSpaceService.swift */,
+				PA01ATTACH0001FILEREF001 /* PhotoAttachments.swift */,
 				C8D7244BDD2D3542329B7E38 /* SafeSpaceDTOs.swift */,
 				BE808A6E2C60A28A34FD4078 /* SafeSpaceModels.swift */,
 				B5C4CB58BA7C79CEF77D8FC6 /* SafeSpaceModule.swift */,
@@ -539,6 +542,7 @@
 				87267DA84D8952E73C3D21A1 /* OpportunitiesView.swift in Sources */,
 				F200FDD30965969736D45595 /* OpportunityDetailView.swift in Sources */,
 				BD2FB35D246C7AFAA65EE6BD /* PKCE.swift in Sources */,
+				PA01ATTACH0001BUILDFILE01 /* PhotoAttachments.swift in Sources */,
 				62F2F5CE03B27A1D368D6463 /* PipelineView.swift in Sources */,
 				E002F3921078FA239F980695 /* RecordRow.swift in Sources */,
 				F42D5D50EA5AF4EED2AF3FBE /* RecordsHomeView.swift in Sources */,
@@ -638,7 +642,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 23;
+				CURRENT_PROJECT_VERSION = 24;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = W4Y8D5GH62;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -698,7 +702,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 23;
+				CURRENT_PROJECT_VERSION = 24;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = W4Y8D5GH62;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
