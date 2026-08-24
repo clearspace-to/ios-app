@@ -115,7 +115,14 @@ struct AppShell: View {
         .animation(.easeInOut(duration: 0.18), value: paletteOpen)
         .animation(.easeInOut(duration: 0.2), value: toast != nil)
         .task(id: paletteQuery + moduleID) {
-            hits = await module.search(paletteQuery)
+            // Debounce: searching a live module hits the network, and this task
+            // is cancelled and restarted on every keystroke.
+            let query = paletteQuery
+            try? await Task.sleep(for: .milliseconds(220))
+            guard !Task.isCancelled else { return }
+            let found = await module.search(query)
+            guard !Task.isCancelled else { return }
+            hits = found
         }
         .onAppear(perform: applyLaunchArguments)
         .confirmationDialog(module.createSheetTitle, isPresented: $createOpen, titleVisibility: .visible) {

@@ -1,15 +1,20 @@
 import Foundation
 
-/// Data source for the safe_space module.
-protocol SafeSpaceService {
+/// The four lists the command bar searches. Split out so the search index —
+/// and its tests — depend only on these, not on the whole service.
+protocol SafetySearchLists {
     func projects() async throws -> [SafetyProject]
+    func talks() async throws -> [ToolboxTalk]
+    func submissions() async throws -> [FormSubmission]
+    func reports() async throws -> [DailyReport]
+}
+
+/// Data source for the safe_space module.
+protocol SafeSpaceService: SafetySearchLists {
     func projectSummary(projectNumber: String) async throws -> ProjectSafetySummary
     func projectOverview(projectNumber: String) async throws -> ProjectOverview
-    func talks() async throws -> [ToolboxTalk]
     func talkDetail(id: String) async throws -> ToolboxTalkDetail
-    func submissions() async throws -> [FormSubmission]
     func submissionDetail(id: String) async throws -> FormSubmissionDetail
-    func reports() async throws -> [DailyReport]
     func reportDetail(id: String) async throws -> DailyReport
     func createReport(_ body: CreateDailyReportBody) async throws
     func createTalk(_ body: CreateToolboxTalkBody) async throws
@@ -220,7 +225,7 @@ struct LiveSafeSpaceService: SafeSpaceService {
     func search(query: String) async throws -> [SafetySearchHit] {
         let q = query.trimmingCharacters(in: .whitespaces)
         guard !q.isEmpty else { return [] }
-        let snapshot = try await Self.index.snapshot(loadedBy: self)
+        let snapshot = await Self.index.snapshot(loadedBy: self)
 
         func matches(_ values: String?...) -> Bool {
             values.compactMap { $0 }.contains { $0.localizedCaseInsensitiveContains(q) }
@@ -279,6 +284,17 @@ actor ProjectNameCache {
 }
 
 /// One snapshot of every searchable list, refreshed at most once a minute.
+///
+/// Two things this has to survive, because the command bar re-searches on every
+/// keystroke:
+///
+/// 1. **Cancellation.** SwiftUI cancels the previous search task when the query
+///    changes, which cancels the URLSession calls underneath it. So the load runs
+///    in one shared `Task` that outlives whichever keystroke started it — later
+///    keystrokes await the same task instead of restarting four requests from
+///    scratch and never finishing.
+/// 2. **A partial outage.** Each list is loaded independently: `/api/talks` being
+///    down must not make a project search come back empty.
 actor SafetySearchIndex {
     struct Snapshot {
         var projects: [SafetyProject] = []
@@ -288,25 +304,55 @@ actor SafetySearchIndex {
     }
 
     private var cached: Snapshot?
-    private var fetchedAt: Date?
-    private let ttl: TimeInterval = 60
+    private var expiresAt: Date?
+    private var inFlight: Task<Snapshot, Never>?
 
-    func snapshot(loadedBy service: LiveSafeSpaceService) async throws -> Snapshot {
-        if let cached, let fetchedAt, Date().timeIntervalSince(fetchedAt) < ttl {
-            return cached
+    private let ttl: TimeInterval = 60
+    /// A load that lost a list is retried soon rather than serving the hole for
+    /// a full minute.
+    private let partialTTL: TimeInterval = 10
+
+    func snapshot(loadedBy service: SafetySearchLists) async -> Snapshot {
+        if let cached, let expiresAt, Date() < expiresAt { return cached }
+        return await (inFlight ?? load(from: service)).value
+    }
+
+    private func load(from service: SafetySearchLists) -> Task<Snapshot, Never> {
+        let previous = cached
+        let task = Task { () -> Snapshot in
+            async let projects = try? await service.projects()
+            async let talks = try? await service.talks()
+            async let forms = try? await service.submissions()
+            async let reports = try? await service.reports()
+
+            let loadedProjects = await projects
+            let loadedTalks = await talks
+            let loadedForms = await forms
+            let loadedReports = await reports
+
+            let snapshot = Snapshot(
+                projects: loadedProjects ?? previous?.projects ?? [],
+                talks: loadedTalks ?? previous?.talks ?? [],
+                forms: loadedForms ?? previous?.forms ?? [],
+                reports: loadedReports ?? previous?.reports ?? []
+            )
+            let complete = loadedProjects != nil && loadedTalks != nil
+                && loadedForms != nil && loadedReports != nil
+            self.store(snapshot, complete: complete)
+            return snapshot
         }
-        async let projects = service.projects()
-        async let talks = service.talks()
-        async let forms = service.submissions()
-        async let reports = service.reports()
-        let snapshot = Snapshot(
-            projects: try await projects,
-            talks: try await talks,
-            forms: try await forms,
-            reports: try await reports
-        )
+        inFlight = task
+        return task
+    }
+
+    private func store(_ snapshot: Snapshot, complete: Bool) {
         cached = snapshot
-        fetchedAt = Date()
-        return snapshot
+        expiresAt = Date().addingTimeInterval(complete ? ttl : partialTTL)
+        inFlight = nil
+    }
+
+    /// Age the cache out so a test can force the next reload.
+    func expireForTesting() {
+        expiresAt = .distantPast
     }
 }
