@@ -17,7 +17,6 @@
 		21599C7FA689CC2895E4B5B9 /* FpuDTOs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E59ACA6142C7DCEC3454004 /* FpuDTOs.swift */; };
 		2342EAA0A6DF2618575C68FC /* DailyReportsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9BBE145E331B6E3AC1512CD /* DailyReportsView.swift */; };
 		2585B5E0C59FA17F5B2EA905 /* MockSafeSpaceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A86727D29225398FB5282226 /* MockSafeSpaceService.swift */; };
-		PA01ATTACH0001BUILDFILE01 /* PhotoAttachments.swift in Sources */ = {isa = PBXBuildFile; fileRef = PA01ATTACH0001FILEREF001 /* PhotoAttachments.swift */; };
 		27F023D1F290FBF08C28F08A /* SafeSpaceModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE808A6E2C60A28A34FD4078 /* SafeSpaceModels.swift */; };
 		28F8CC6DD7728F8DFDDC24F1 /* FpuStepTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91BA40A042AB62323032E95D /* FpuStepTests.swift */; };
 		2D5BB84C9486123A69CB291F /* NavDrawer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D2D9A326A07C7E0F776B406 /* NavDrawer.swift */; };
@@ -28,6 +27,7 @@
 		356ACE6B843EFD35F1CA301E /* DailyReportFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A6862F466B2B2F725495B9A /* DailyReportFormView.swift */; };
 		37C86AED7829DB17D50A6107 /* WebAuthPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 379FE6DD9AC16772AD0FC17A /* WebAuthPresenter.swift */; };
 		3B663DC1C847A15FF6348007 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6A4D69AFE6D4C9AC1A5E886 /* APIClient.swift */; };
+		3B6A119F31D0643400291997 /* PhotoAttachments.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF52CCC2F9406128E8FCFB67 /* PhotoAttachments.swift */; };
 		3E76754CBB28C09BFB7B5099 /* ScheduleModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98A3834F4B547C0ADA29A12F /* ScheduleModels.swift */; };
 		50C9DC6D29B68004EBABBA3C /* ToolboxTalkFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 305B98ED19FABA0A16B5AB27 /* ToolboxTalkFormView.swift */; };
 		53E3A80F20BC5810B0736970 /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35C08089037F79C5446F2278 /* AuthManager.swift */; };
@@ -110,7 +110,6 @@
 		294AAB06F7769CD612E53E22 /* OpportunityDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpportunityDetailView.swift; sourceTree = "<group>"; };
 		2A42AD858C3124E7F4D57E98 /* ShellNavigationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShellNavigationTests.swift; sourceTree = "<group>"; };
 		2D0FB4CB64CEA8EED47086AB /* SafeSpaceService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafeSpaceService.swift; sourceTree = "<group>"; };
-		PA01ATTACH0001FILEREF001 /* PhotoAttachments.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoAttachments.swift; sourceTree = "<group>"; };
 		2E59ACA6142C7DCEC3454004 /* FpuDTOs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FpuDTOs.swift; sourceTree = "<group>"; };
 		2FE68922EB60E6FE1D770B27 /* Glass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Glass.swift; sourceTree = "<group>"; };
 		305B98ED19FABA0A16B5AB27 /* ToolboxTalkFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolboxTalkFormView.swift; sourceTree = "<group>"; };
@@ -160,6 +159,7 @@
 		BE808A6E2C60A28A34FD4078 /* SafeSpaceModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafeSpaceModels.swift; sourceTree = "<group>"; };
 		BF603740B4107E924D07E2BE /* InitialsAvatar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InitialsAvatar.swift; sourceTree = "<group>"; };
 		C8D7244BDD2D3542329B7E38 /* SafeSpaceDTOs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafeSpaceDTOs.swift; sourceTree = "<group>"; };
+		CF52CCC2F9406128E8FCFB67 /* PhotoAttachments.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoAttachments.swift; sourceTree = "<group>"; };
 		D0A13116694DE3CA04804AD9 /* ClearspaceMobileApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClearspaceMobileApp.swift; sourceTree = "<group>"; };
 		D2D065622545937CCB8C067F /* FpuEntryFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FpuEntryFormView.swift; sourceTree = "<group>"; };
 		D3E5C33C81542ED20A3A5EFA /* ScheduleDecodingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleDecodingTests.swift; sourceTree = "<group>"; };
@@ -320,7 +320,7 @@
 				2E59ACA6142C7DCEC3454004 /* FpuDTOs.swift */,
 				2342847D1778F7A28CF62B7C /* FpuModels.swift */,
 				A86727D29225398FB5282226 /* MockSafeSpaceService.swift */,
-				PA01ATTACH0001FILEREF001 /* PhotoAttachments.swift */,
+				CF52CCC2F9406128E8FCFB67 /* PhotoAttachments.swift */,
 				C8D7244BDD2D3542329B7E38 /* SafeSpaceDTOs.swift */,
 				BE808A6E2C60A28A34FD4078 /* SafeSpaceModels.swift */,
 				B5C4CB58BA7C79CEF77D8FC6 /* SafeSpaceModule.swift */,
@@ -542,7 +542,7 @@
 				87267DA84D8952E73C3D21A1 /* OpportunitiesView.swift in Sources */,
 				F200FDD30965969736D45595 /* OpportunityDetailView.swift in Sources */,
 				BD2FB35D246C7AFAA65EE6BD /* PKCE.swift in Sources */,
-				PA01ATTACH0001BUILDFILE01 /* PhotoAttachments.swift in Sources */,
+				3B6A119F31D0643400291997 /* PhotoAttachments.swift in Sources */,
 				62F2F5CE03B27A1D368D6463 /* PipelineView.swift in Sources */,
 				E002F3921078FA239F980695 /* RecordRow.swift in Sources */,
 				F42D5D50EA5AF4EED2AF3FBE /* RecordsHomeView.swift in Sources */,
