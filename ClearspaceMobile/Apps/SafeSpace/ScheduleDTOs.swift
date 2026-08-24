@@ -4,22 +4,23 @@ import Foundation
 // snake_case (no dynamic keys), so these use the client's default snake_case
 // conversion — unlike the FPU routes.
 
-// MARK: - GET /api/projects/<project>/schedule-tasks
+// MARK: - GET /api/projects/<project>/schedule-milestones
 
-struct ScheduleTasksResponse: Decodable {
+struct ScheduleMilestonesResponse: Decodable {
     let linked: Bool
-    let tasks: [ScheduleTaskDTO]
+    let milestones: [ScheduleMilestoneDTO]
 }
 
-struct ScheduleTaskDTO: Decodable {
-    let id: Int
-    let name: String
-    let start: String?
-    let finish: String?
-    let percentage: Double?
+struct ScheduleMilestoneDTO: Decodable {
+    let key: String
+    let label: String
+    let taskId: Int
+    let taskName: String
+    let date: String?
 
-    func toModel() -> ScheduleTask {
-        ScheduleTask(id: id, name: name, start: start, finish: finish, percentage: percentage)
+    func toModel() -> ScheduleMilestone {
+        ScheduleMilestone(key: key, label: label, taskId: taskId,
+                          taskName: taskName, date: date)
     }
 }
 
@@ -64,12 +65,11 @@ struct ScheduleChangeDTO: Decodable {
 
 // MARK: - POST /api/projects/<project>/schedule-changes
 
+/// Just "which milestone, what new date" — the API expands the single date into
+/// Procore's start and finish itself, since milestones are single-day.
 struct CreateScheduleChangeBody: Encodable {
     let taskId: Int
-    let newStart: String?
-    let newFinish: String?
-    let newPercentage: Double?
-    let otherChange: String
+    let newDate: String
     let reason: String
     let notes: String
 }

@@ -6,19 +6,26 @@ import Foundation
 // Status lives in Procore and is merged live on read; there is no edit,
 // withdraw or review API, so filing is deliberately confirm-y in the UI.
 
-/// One schedule task from Procore — the target of a change request.
-struct ScheduleTask: Identifiable, Hashable {
-    let id: Int
-    let name: String
-    let start: String?
-    let finish: String?
-    let percentage: Double?
+/// One of the three date-movable Procore milestones — the target of a change
+/// request. safe_space deliberately exposes only these three (rough
+/// inspections, construction completion, takeover) rather than the whole
+/// 180-row task list. Milestones are single-day, so there is one date, not a
+/// start/finish range and no percent complete.
+struct ScheduleMilestone: Identifiable, Hashable {
+    var id: Int { taskId }
+    /// Stable key from the API ("construction_completion").
+    let key: String
+    /// safe_space's own label, not Procore's raw task name.
+    let label: String
+    /// The Procore schedule task id the change request is filed against.
+    let taskId: Int
+    let taskName: String
+    let date: String?
 
-    /// "2026-09-01 → 2026-09-15 · 40% complete" — the picker's reference line.
+    /// "currently Sep 15, 2026" — the picker's reference line.
     var currentLine: String {
-        var line = "\(start ?? "—") → \(finish ?? "—")"
-        if let percentage { line += " · \(Int(percentage.rounded()))% complete" }
-        return line
+        guard let date, !date.isEmpty else { return "no date on the schedule" }
+        return "currently \(SafetyDates.day(date))"
     }
 }
 

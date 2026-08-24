@@ -19,7 +19,7 @@ protocol SafeSpaceService {
     func fpuWeeks(projectNumber: String) async throws -> [FpuWeekRow]
     func uploadFpuPhoto(projectNumber: String, filename: String, contentType: String, data: Data) async throws -> FpuAttachment
     func scheduleChanges(projectNumber: String) async throws -> ScheduleChanges
-    func scheduleTasks(projectNumber: String) async throws -> [ScheduleTask]
+    func scheduleMilestones(projectNumber: String) async throws -> [ScheduleMilestone]
     func createScheduleChange(projectNumber: String, body: CreateScheduleChangeBody) async throws
     func search(query: String) async throws -> [SafetySearchHit]
 }
@@ -192,6 +192,7 @@ struct LiveSafeSpaceService: SafeSpaceService {
     //
     // Fixed snake_case keys, so these use the default conversion. Status lives
     // in Procore and is merged on read; there is no edit/withdraw API.
+    // Requests target one of the three movable milestones, not any task.
 
     func scheduleChanges(projectNumber: String) async throws -> ScheduleChanges {
         let response: ScheduleChangesResponse =
@@ -199,11 +200,11 @@ struct LiveSafeSpaceService: SafeSpaceService {
         return response.toModel()
     }
 
-    func scheduleTasks(projectNumber: String) async throws -> [ScheduleTask] {
-        let response: ScheduleTasksResponse =
-            try await api.get("/api/projects/\(projectNumber)/schedule-tasks")
+    func scheduleMilestones(projectNumber: String) async throws -> [ScheduleMilestone] {
+        let response: ScheduleMilestonesResponse =
+            try await api.get("/api/projects/\(projectNumber)/schedule-milestones")
         guard response.linked else { throw APIError.server(status: 400, message: "This project isn't linked to Procore.") }
-        return response.tasks.map { $0.toModel() }
+        return response.milestones.map { $0.toModel() }
     }
 
     func createScheduleChange(projectNumber: String, body: CreateScheduleChangeBody) async throws {

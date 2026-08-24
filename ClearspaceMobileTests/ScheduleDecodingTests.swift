@@ -11,32 +11,52 @@ final class ScheduleDecodingTests: XCTestCase {
         return try decoder.decode(type, from: Data(json.utf8))
     }
 
-    // MARK: - GET /api/projects/<project>/schedule-tasks
+    // MARK: - GET /api/projects/<project>/schedule-milestones
 
-    func testDecodesScheduleTasks() throws {
-        let response = try decode(ScheduleTasksResponse.self, """
+    func testDecodesScheduleMilestones() throws {
+        let response = try decode(ScheduleMilestonesResponse.self, """
         {"linked": true,
-         "tasks": [{"id": 987, "name": "Drywall — L3",
-                    "start": "2026-09-01", "finish": "2026-09-15", "percentage": 40},
-                   {"id": 988, "name": "Millwork", "start": null, "finish": null, "percentage": null}]}
+         "milestones": [{"key": "construction_completion",
+                         "label": "Construction completion",
+                         "task_id": 987,
+                         "task_name": "Phase 3 : Construction Completion",
+                         "date": "2026-09-15"},
+                        {"key": "takeover", "label": "Takeover",
+                         "task_id": 988,
+                         "task_name": "Phase 3 : Ready For Takeover",
+                         "date": null}]}
         """)
         XCTAssertTrue(response.linked)
-        XCTAssertEqual(response.tasks.count, 2)
-        let first = response.tasks[0].toModel()
+        XCTAssertEqual(response.milestones.count, 2)
+
+        let first = response.milestones[0].toModel()
         XCTAssertEqual(first.id, 987)
-        XCTAssertEqual(first.start, "2026-09-01")
-        XCTAssertEqual(first.currentLine, "2026-09-01 → 2026-09-15 · 40% complete")
-        let second = response.tasks[1].toModel()
-        XCTAssertNil(second.percentage)
-        XCTAssertEqual(second.currentLine, "— → —")
+        XCTAssertEqual(first.taskId, 987)
+        XCTAssertEqual(first.label, "Construction completion")
+        XCTAssertEqual(first.date, "2026-09-15")
+        XCTAssertEqual(first.currentLine, "currently Sep 15, 2026")
+
+        // A milestone can be on the schedule with no date set.
+        let second = response.milestones[1].toModel()
+        XCTAssertNil(second.date)
+        XCTAssertEqual(second.currentLine, "no date on the schedule")
     }
 
-    func testDecodesUnlinkedTasksResponse() throws {
-        let response = try decode(ScheduleTasksResponse.self, """
-        {"linked": false, "tasks": []}
+    func testDecodesUnlinkedMilestonesResponse() throws {
+        let response = try decode(ScheduleMilestonesResponse.self, """
+        {"linked": false, "milestones": []}
         """)
         XCTAssertFalse(response.linked)
-        XCTAssertTrue(response.tasks.isEmpty)
+        XCTAssertTrue(response.milestones.isEmpty)
+    }
+
+    /// A linked project whose Procore schedule has none of the three.
+    func testDecodesLinkedButEmptyMilestones() throws {
+        let response = try decode(ScheduleMilestonesResponse.self, """
+        {"linked": true, "milestones": []}
+        """)
+        XCTAssertTrue(response.linked)
+        XCTAssertTrue(response.milestones.isEmpty)
     }
 
     // MARK: - GET /api/projects/<project>/schedule-changes
@@ -46,12 +66,12 @@ final class ScheduleDecodingTests: XCTestCase {
         {"linked": true, "available": true,
          "changes": [{"procore_rc_id": 12345, "status": "pending",
                       "task_name": "Drywall — L3",
-                      "summary": "Start → 2026-09-01 · Finish → 2026-09-15",
+                      "summary": "Move to 2026-09-01",
                       "reason": "Permit delay", "notes": "",
                       "filed_by": "mark@clearspace.to", "requested_by": "",
                       "created_at": "2026-08-23T21:35:13.123456+00:00"},
                      {"procore_rc_id": 12000, "status": "accepted",
-                      "task_name": "", "summary": "Finish → 2026-10-01",
+                      "task_name": "", "summary": "Move to 2026-10-01",
                       "reason": "", "notes": "", "filed_by": "",
                       "requested_by": "Jane Doe on Mon Aug 3", "created_at": null}]}
         """)
@@ -90,20 +110,20 @@ final class ScheduleDecodingTests: XCTestCase {
 
     // MARK: - POST /api/projects/<project>/schedule-changes
 
+    /// One date, not a start/finish/percent — the API expands it into Procore's
+    /// start and finish, since milestones are single-day.
     func testEncodesCreateBodyInSnakeCase() throws {
         let body = CreateScheduleChangeBody(
-            taskId: 987, newStart: "2026-09-01", newFinish: nil,
-            newPercentage: 40, otherChange: "", reason: "Permit delay",
+            taskId: 987, newDate: "2026-09-01", reason: "Permit delay",
             notes: "Crane back Thursday")
         let encoder = JSONEncoder()
         encoder.keyEncodingStrategy = .convertToSnakeCase
         let json = try XCTUnwrap(
             JSONSerialization.jsonObject(with: encoder.encode(body)) as? [String: Any])
 
+        XCTAssertEqual(json.count, 4)
         XCTAssertEqual(json["task_id"] as? Int, 987)
-        XCTAssertEqual(json["new_start"] as? String, "2026-09-01")
-        XCTAssertNil(json["new_finish"] as Any?)
-        XCTAssertEqual(json["new_percentage"] as? Double, 40)
+        XCTAssertEqual(json["new_date"] as? String, "2026-09-01")
         XCTAssertEqual(json["reason"] as? String, "Permit delay")
         XCTAssertEqual(json["notes"] as? String, "Crane back Thursday")
     }

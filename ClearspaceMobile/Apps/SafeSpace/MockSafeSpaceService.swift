@@ -284,14 +284,17 @@ struct MockSafeSpaceService: SafeSpaceService {
         ])
     }
 
-    func scheduleTasks(projectNumber: String) async throws -> [ScheduleTask] {
+    func scheduleMilestones(projectNumber: String) async throws -> [ScheduleMilestone] {
         [
-            ScheduleTask(id: 101, name: "Drywall — Level 3",
-                         start: "2026-08-25", finish: "2026-09-08", percentage: 10),
-            ScheduleTask(id: 102, name: "Electrical rough-in — Level 2",
-                         start: "2026-08-18", finish: "2026-09-01", percentage: 35),
-            ScheduleTask(id: 103, name: "Millwork install — Kitchen",
-                         start: "2026-09-15", finish: "2026-09-29", percentage: nil),
+            ScheduleMilestone(key: "rough_inspection", label: "Rough inspections complete",
+                              taskId: 101, taskName: "Phase 2 : Rough Inspections Complete",
+                              date: "2026-09-08"),
+            ScheduleMilestone(key: "construction_completion", label: "Construction completion",
+                              taskId: 102, taskName: "Phase 3 : Construction Completion",
+                              date: "2026-10-01"),
+            ScheduleMilestone(key: "takeover", label: "Takeover",
+                              taskId: 103, taskName: "Phase 3 : Ready For Takeover",
+                              date: nil),
         ]
     }
 

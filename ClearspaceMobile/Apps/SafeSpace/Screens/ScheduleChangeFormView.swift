@@ -1,8 +1,11 @@
 import SwiftUI
 
-/// Request a schedule change: pick the Procore task, say what should move and
-/// why. Files straight into Procore's Schedule tool, where it can only be
-/// accepted or denied — not edited or withdrawn — so submitting confirms first.
+/// Request a milestone date change: pick one of the three movable milestones,
+/// pick the new date, say why. Deliberately tiny — supers move rough
+/// inspections, construction completion and takeover, and the old whole-schedule
+/// task list buried those. Files straight into Procore's Schedule tool, where it
+/// can only be accepted or denied — not edited or withdrawn — so submitting
+/// confirms first.
 struct ScheduleChangeFormView: View {
     let service: SafeSpaceService
     /// Locked when launched from a project page; pickable from the global
@@ -13,19 +16,14 @@ struct ScheduleChangeFormView: View {
 
     @State private var projects: [SafetyProject] = []
     @State private var selectedProject: String
-    @State private var tasks: [ScheduleTask]?
-    @State private var tasksError: String?
-    /// Which project the loaded tasks belong to. `.task(id:)` re-fires when the
-    /// form reappears after the picker pops — without this guard that reload
-    /// would wipe the task the user just picked.
-    @State private var tasksProject = ""
+    @State private var milestones: [ScheduleMilestone]?
+    @State private var milestonesError: String?
+    /// Which project the loaded milestones belong to. `.task(id:)` re-fires when
+    /// the form reappears after the project picker pops — without this guard
+    /// that reload would wipe the milestone the user just picked.
+    @State private var milestonesProject = ""
     @State private var taskID: Int?
-    @State private var changeStart = false
-    @State private var newStart = Date()
-    @State private var changeFinish = false
-    @State private var newFinish = Date()
-    @State private var newPercentage = ""
-    @State private var otherChange = ""
+    @State private var newDate = Date()
     @State private var reason = ""
     @State private var notes = ""
     @State private var confirming = false
@@ -38,32 +36,41 @@ struct ScheduleChangeFormView: View {
         _selectedProject = State(initialValue: fixedProjectNumber ?? "")
     }
 
-    private var selectedTask: ScheduleTask? { tasks?.first { $0.id == taskID } }
-
-    /// The server's rule, enforced client-side too: a task plus at least one
-    /// actual change (reason and notes alone don't count).
-    private var hasAChange: Bool {
-        changeStart || changeFinish
-            || !newPercentage.trimmingCharacters(in: .whitespaces).isEmpty
-            || !otherChange.trimmingCharacters(in: .whitespaces).isEmpty
+    private var selectedMilestone: ScheduleMilestone? {
+        milestones?.first { $0.taskId == taskID }
     }
-    private var canSubmit: Bool { taskID != nil && hasAChange && !submitting }
+
+    /// Filing is one-way in Procore, so don't let a no-op through: the new date
+    /// has to actually differ from what the schedule says today.
+    private var dateMoves: Bool {
+        guard let current = selectedMilestone?.date else { return true }
+        return Self.isoDay.string(from: newDate) != current
+    }
+    private var canSubmit: Bool { taskID != nil && dateMoves && !submitting }
 
     var body: some View {
         NavigationStack {
             Form {
                 projectSection
 
-                if let tasks {
-                    taskSection(tasks)
-                    if taskID != nil {
-                        changesSection
-                        contextSection
+                if let milestones {
+                    if milestones.isEmpty {
+                        Section {
+                            Text("This project's Procore schedule has none of the movable milestones (rough inspections, construction completion, takeover).")
+                                .foregroundStyle(.secondary)
+                                .font(.footnote)
+                        }
+                    } else {
+                        milestoneSection(milestones)
+                        if taskID != nil {
+                            dateSection
+                            contextSection
+                        }
                     }
-                } else if let tasksError {
+                } else if let milestonesError {
                     Section {
-                        Text(tasksError).foregroundStyle(.secondary).font(.footnote)
-                        Button("Try Again") { Task { await loadTasks() } }
+                        Text(milestonesError).foregroundStyle(.secondary).font(.footnote)
+                        Button("Try Again") { Task { await loadMilestones() } }
                     }
                 } else if !selectedProject.isEmpty {
                     Section { ProgressView() }
@@ -100,7 +107,7 @@ struct ScheduleChangeFormView: View {
                 Text(errorMessage ?? "")
             }
             .task { await loadProjects() }
-            .task(id: selectedProject) { await loadTasks() }
+            .task(id: selectedProject) { await loadMilestones() }
             .disabled(submitting)
             .interactiveDismissDisabled(submitting)
         }
@@ -127,59 +134,57 @@ struct ScheduleChangeFormView: View {
             }
         } footer: {
             if selectedProject.isEmpty {
-                Text("Choose a project to load its Procore schedule.")
+                Text("Choose a project to load its Procore milestones.")
             }
         }
     }
 
-    @ViewBuilder
-    private func taskSection(_ tasks: [ScheduleTask]) -> some View {
+    /// Only ever three rows, so they list inline — no separate picker screen.
+    private func milestoneSection(_ milestones: [ScheduleMilestone]) -> some View {
         Section {
-            NavigationLink {
-                ScheduleTaskPickerList(tasks: tasks, selection: $taskID)
-            } label: {
-                HStack {
-                    Text("Schedule task")
-                    Spacer()
-                    Text(selectedTask?.name ?? "Pick a task")
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
+            ForEach(milestones) { milestone in
+                Button {
+                    taskID = milestone.taskId
+                    // Seed the picker from the milestone's own date so the super
+                    // nudges from where the schedule actually is.
+                    if let date = milestone.date,
+                       let parsed = Self.isoDay.date(from: date) {
+                        newDate = parsed
+                    }
+                } label: {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(milestone.label)
+                            Text(milestone.currentLine)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                        if milestone.taskId == taskID {
+                            Image(systemName: "checkmark")
+                                .foregroundStyle(.tint)
+                        }
+                    }
                 }
+                .foregroundStyle(.primary)
             }
+        } header: {
+            Text("Milestone")
         } footer: {
-            if let selectedTask {
-                Text("Currently \(selectedTask.currentLine)")
-            } else {
-                Text("The Procore schedule task the change is for.")
+            if taskID == nil {
+                Text("Which milestone needs to move.")
             }
         }
     }
 
-    private var changesSection: some View {
+    private var dateSection: some View {
         Section {
-            Toggle("New start", isOn: $changeStart.animation())
-            if changeStart {
-                DatePicker("Starts", selection: $newStart, displayedComponents: .date)
-            }
-            Toggle("New finish", isOn: $changeFinish.animation())
-            if changeFinish {
-                DatePicker("Finishes", selection: $newFinish, displayedComponents: .date)
-            }
-            HStack {
-                Text("New % complete")
-                Spacer()
-                TextField("—", text: $newPercentage)
-                    .keyboardType(.numberPad)
-                    .multilineTextAlignment(.trailing)
-                    .frame(width: 80)
-            }
-            TextField("Other change — anything dates and % don't cover",
-                      text: $otherChange, axis: .vertical)
-        } header: {
-            Text("Requested change")
+            DatePicker("New date", selection: $newDate, displayedComponents: .date)
         } footer: {
-            if !hasAChange {
-                Text("Request at least one change — a new date, percent complete, or a described change.")
+            if let current = selectedMilestone?.date, !dateMoves {
+                Text("Pick a date other than \(SafetyDates.day(current)) — that's where the schedule already sits.")
+            } else if let current = selectedMilestone?.date {
+                Text("Moving from \(SafetyDates.day(current)).")
             }
         }
     }
@@ -210,41 +215,29 @@ struct ScheduleChangeFormView: View {
         }
     }
 
-    private func loadTasks() async {
-        guard !selectedProject.isEmpty, selectedProject != tasksProject else { return }
-        tasksProject = selectedProject
-        tasks = nil
-        tasksError = nil
+    private func loadMilestones() async {
+        guard !selectedProject.isEmpty, selectedProject != milestonesProject else { return }
+        milestonesProject = selectedProject
+        milestones = nil
+        milestonesError = nil
         taskID = nil
         do {
-            tasks = try await service.scheduleTasks(projectNumber: selectedProject)
+            milestones = try await service.scheduleMilestones(projectNumber: selectedProject)
         } catch {
-            tasksError = error.localizedDescription
-            tasksProject = ""   // so Try Again actually retries
+            milestonesError = error.localizedDescription
+            milestonesProject = ""   // so Try Again actually retries
         }
     }
 
     private func submit() async {
-        guard let taskID, hasAChange else { return }
+        guard let taskID, dateMoves else { return }
         submitting = true
         defer { submitting = false }
-
-        let percentText = newPercentage.trimmingCharacters(in: .whitespaces)
-        let percent = percentText.isEmpty ? nil : Double(percentText)
-        if !percentText.isEmpty {
-            guard let percent, (0...100).contains(percent) else {
-                errorMessage = "New % complete must be a number between 0 and 100."
-                return
-            }
-        }
 
         do {
             try await service.createScheduleChange(projectNumber: selectedProject, body: CreateScheduleChangeBody(
                 taskId: taskID,
-                newStart: changeStart ? Self.isoDay.string(from: newStart) : nil,
-                newFinish: changeFinish ? Self.isoDay.string(from: newFinish) : nil,
-                newPercentage: percent,
-                otherChange: otherChange.trimmingCharacters(in: .whitespacesAndNewlines),
+                newDate: Self.isoDay.string(from: newDate),
                 reason: reason.trimmingCharacters(in: .whitespacesAndNewlines),
                 notes: notes.trimmingCharacters(in: .whitespacesAndNewlines)))
             NotificationCenter.default.post(name: .safeSpaceRecordCreated, object: nil)
@@ -254,49 +247,14 @@ struct ScheduleChangeFormView: View {
         }
     }
 
+    /// Local time zone on purpose, in both directions: DatePicker hands back a
+    /// local midnight, so parsing and formatting locally round-trips the day the
+    /// super actually tapped. (SafetyDates.day renders UTC because it only ever
+    /// reads dates off the wire.)
     private static let isoDay: DateFormatter = {
         let f = DateFormatter()
         f.dateFormat = "yyyy-MM-dd"
         f.locale = Locale(identifier: "en_US_POSIX")
         return f
     }()
-}
-
-private struct ScheduleTaskPickerList: View {
-    let tasks: [ScheduleTask]
-    @Binding var selection: Int?
-    @Environment(\.dismiss) private var dismiss
-    @State private var search = ""
-
-    private var filtered: [ScheduleTask] {
-        if search.isEmpty { return tasks }
-        return tasks.filter { $0.name.localizedCaseInsensitiveContains(search) }
-    }
-
-    var body: some View {
-        List(filtered) { task in
-            Button {
-                selection = task.id
-                dismiss()
-            } label: {
-                HStack {
-                    VStack(alignment: .leading) {
-                        Text(task.name).lineLimit(2)
-                        Text(task.currentLine)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                    Spacer()
-                    if task.id == selection {
-                        Image(systemName: "checkmark")
-                            .foregroundStyle(.tint)
-                    }
-                }
-            }
-            .foregroundStyle(.primary)
-        }
-        .searchable(text: $search, prompt: "Search tasks")
-        .navigationTitle("Schedule Task")
-        .navigationBarTitleDisplayMode(.inline)
-    }
 }
