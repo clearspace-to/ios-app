@@ -11,16 +11,11 @@ struct DailyReportFormView: View {
     @State private var projects: [SafetyProject] = []
     @State private var selectedProject: String
     @State private var reportDate = Date()
-    @State private var weather = ""
     @State private var crewLines: [CrewEntry] = []
     @State private var committedTrades: [ProjectTrade]?
     @State private var tradesLoading = false
     @State private var workPerformed = ""
     @State private var hazardsObserved = ""
-    @State private var toolboxTalkDelivered = false
-    @State private var visitors = ""
-    @State private var deliveries = ""
-    @State private var incidents = false
     @State private var notes = ""
     @State private var submitting = false
     @State private var errorMessage: String?
@@ -33,7 +28,6 @@ struct DailyReportFormView: View {
 
     private var canSubmit: Bool {
         !selectedProject.isEmpty
-            && !weather.trimmingCharacters(in: .whitespaces).isEmpty
             && crewLines.contains { !$0.tradeName.trimmingCharacters(in: .whitespaces).isEmpty }
             && !workPerformed.trimmingCharacters(in: .whitespaces).isEmpty
     }
@@ -54,7 +48,6 @@ struct DailyReportFormView: View {
                         }
                     }
                     DatePicker("Date", selection: $reportDate, displayedComponents: .date)
-                    TextField("Weather", text: $weather, prompt: Text("e.g. Sunny · 24°C"))
                 }
 
                 Section("Crew") {
@@ -110,13 +103,6 @@ struct DailyReportFormView: View {
                 Section("Hazards Observed") {
                     TextField("Describe any hazards (or leave blank)", text: $hazardsObserved, axis: .vertical)
                         .lineLimit(2...6)
-                }
-
-                Section("Site Activity") {
-                    Toggle("Toolbox talk delivered", isOn: $toolboxTalkDelivered)
-                    TextField("Visitors", text: $visitors, prompt: Text("e.g. City inspector (11:00)"))
-                    TextField("Deliveries", text: $deliveries, prompt: Text("e.g. 2 skids drywall"))
-                    Toggle("Incidents", isOn: $incidents)
                 }
 
                 Section("Notes") {
@@ -187,15 +173,15 @@ struct DailyReportFormView: View {
         let body = CreateDailyReportBody(
             projectNumber: selectedProject,
             reportDate: Self.dateString(reportDate),
-            weather: weather.trimmingCharacters(in: .whitespaces),
+            weather: "",
             crew: validCrew.map { .init(tradeName: $0.tradeName.trimmingCharacters(in: .whitespaces),
                                         headcount: $0.headcount) },
             workPerformed: workPerformed.trimmingCharacters(in: .whitespaces),
             hazardsObserved: hazardsObserved.trimmingCharacters(in: .whitespaces),
-            toolboxTalkDelivered: toolboxTalkDelivered,
-            visitors: visitors.trimmingCharacters(in: .whitespaces),
-            deliveries: deliveries.trimmingCharacters(in: .whitespaces),
-            incidents: incidents,
+            toolboxTalkDelivered: false,
+            visitors: "",
+            deliveries: "",
+            incidents: false,
             notes: notes.trimmingCharacters(in: .whitespaces)
         )
 
