@@ -166,13 +166,13 @@ final class FpuDecodingTests: XCTestCase {
             comment: "steady",
             attachments: [FpuAttachment(path: "fpus/1626/x.jpg", name: "x.jpg",
                                         size: 10, type: "image/jpeg", kind: "photo")],
-            status: "complete")
+            status: "submitted")
         // Encoded WITHOUT snake conversion, matching api.put(convertSnakeCase: false).
         let data = try JSONEncoder().encode(body)
         let json = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
 
         XCTAssertEqual(json["week_ending"] as? String, "2026-08-21")
-        XCTAssertEqual(json["status"] as? String, "complete")
+        XCTAssertEqual(json["status"] as? String, "submitted")
         let values = try XCTUnwrap(json["values"] as? [String: Any])
         XCTAssertEqual(values["a1_demolition"] as? Int, 75)
         XCTAssertTrue(values["a2_partitions"] is NSNull,

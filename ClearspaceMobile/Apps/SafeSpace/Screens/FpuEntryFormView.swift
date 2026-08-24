@@ -319,7 +319,7 @@ struct FpuEntryFormView: View {
                 values: payload,
                 comment: comment.trimmingCharacters(in: .whitespacesAndNewlines),
                 attachments: attachments,
-                status: "complete"))
+                status: "submitted"))
             NotificationCenter.default.post(name: .safeSpaceRecordCreated, object: nil)
             dismiss()
         } catch {

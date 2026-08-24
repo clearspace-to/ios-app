@@ -1,5 +1,13 @@
 # CLAUDE.md
 
+## safe_space is the source of truth
+
+This iOS app is a client for the **safe_space** backend (`/Users/markgoh/Code/safe_space`).
+Before building or changing any SafeSpace feature, read that repo's `CLAUDE.md` — it has the
+schema rules, status flows, shared-table contracts, and two-Supabase-project setup that the
+iOS code must follow. The backend defines what the API accepts; don't guess status values,
+field names, or validation rules from the iOS side alone.
+
 ## Auto-filling creation forms from a project page
 
 When a creation form (Daily Report / FPU, Toolbox Talk, Form Submission, etc.)
