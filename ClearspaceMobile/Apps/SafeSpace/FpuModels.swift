@@ -99,7 +99,9 @@ struct FpuColumn: Identifiable, Hashable {
 /// filed wrong. On a phone the only way to correct a bad prior week is to go
 /// under last week, and per Mark (2026-08-24) the phone must not be able to do
 /// that at all — a super in the field can only move progress forward, and
-/// corrections happen on the web. Clearing a division to blank is still
+/// corrections happen on the web. A typed value below the floor is REFUSED
+/// with a message rather than quietly pulled up, so the super sees why the
+/// number they entered didn't stick. Clearing a division to blank is still
 /// allowed: that files no answer, not a lower number.
 struct FpuStep {
     /// Last week's percentage. nil = no history, which floors the division at 0.
@@ -121,14 +123,24 @@ struct FpuStep {
         return min(100, max(floor, snapped))
     }
 
-    /// A typed value: held to the same floor as the steppers, and to 0–100.
-    /// Unlike a step it does NOT snap to the 5% grid — a super typing 63 means 63.
-    func typed(_ raw: String) -> Int? {
+    /// What committing a typed field should do.
+    enum Typed: Equatable {
+        /// Blank (or nothing numeric): this division files no answer.
+        case cleared
+        /// Taken as-is — a typed value is NOT snapped to the 5% grid, so a
+        /// super typing 63 gets 63.
+        case accepted(Int)
+        /// Below last week. Carries the number they typed, for the message.
+        case refused(Int)
+    }
+
+    func typed(_ raw: String) -> Typed {
         // Three digits is enough for 0–100, and keeps a long paste from
-        // overflowing Int on the way to being clamped anyway.
+        // overflowing Int on the way to being capped anyway.
         let digits = raw.filter(\.isNumber).prefix(3)
-        guard let number = Int(digits) else { return nil }
-        return min(100, max(floor, number))
+        guard let number = Int(digits) else { return .cleared }
+        let capped = min(100, number)
+        return capped < floor ? .refused(capped) : .accepted(capped)
     }
 }
 

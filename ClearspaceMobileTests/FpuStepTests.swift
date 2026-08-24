@@ -61,55 +61,56 @@ final class FpuStepTests: XCTestCase {
 
     // MARK: - Typed values
     //
-    // Unlike the web form, typing on the phone is held to the floor too: a
-    // super in the field can only move progress forward.
+    // Unlike the web form, typing on the phone can't go under last week either.
+    // It is refused outright rather than quietly corrected, so the super is
+    // told why their number didn't stick.
 
-    func testTypingCannotGoBelowLastWeek() {
+    func testTypingBelowLastWeekIsRefused() {
         let row = step(value: 55, previous: 55)
-        XCTAssertEqual(row.typed("40"), 55, "A typed value under last week is pulled up to it")
-        XCTAssertEqual(row.typed("0"), 55)
-        XCTAssertEqual(row.typed("55"), 55)
+        XCTAssertEqual(row.typed("40"), .refused(40))
+        XCTAssertEqual(row.typed("0"), .refused(0))
     }
 
-    func testTypingAboveLastWeekIsTakenAsIs() {
+    func testTypingAtOrAboveLastWeekIsAccepted() {
         let row = step(value: 55, previous: 55)
+        XCTAssertEqual(row.typed("55"), .accepted(55))
         // No 5% snapping on a typed value — 63 means 63.
-        XCTAssertEqual(row.typed("63"), 63)
-        XCTAssertEqual(row.typed("100"), 100)
+        XCTAssertEqual(row.typed("63"), .accepted(63))
+        XCTAssertEqual(row.typed("100"), .accepted(100))
     }
 
     func testTypedValuesAreCappedAtOneHundred() {
         let row = step(value: nil, previous: 20)
-        XCTAssertEqual(row.typed("120"), 100)
-        XCTAssertEqual(row.typed("999999999999999999999"), 100,
-                       "A long paste must clamp rather than overflow")
+        XCTAssertEqual(row.typed("120"), .accepted(100))
+        XCTAssertEqual(row.typed("999999999999999999999"), .accepted(100),
+                       "A long paste must cap rather than overflow")
     }
 
     func testClearingTheFieldMeansNoAnswerRatherThanZero() {
         // Filing null leaves whatever the shared row already had; it is not a
-        // way to record a lower number.
-        XCTAssertNil(step(value: 55, previous: 55).typed(""))
-        XCTAssertNil(step(value: 55, previous: 55).typed("   "))
+        // way to record a lower number, so it isn't refused.
+        XCTAssertEqual(step(value: 55, previous: 55).typed(""), .cleared)
+        XCTAssertEqual(step(value: 55, previous: 55).typed("   "), .cleared)
     }
 
-    func testNonDigitsAreIgnored() {
+    func testNonDigitsAreIgnoredRatherThanChangingTheNumber() {
         let row = step(value: nil, previous: 10)
-        XCTAssertEqual(row.typed("6a3"), 63)
-        XCTAssertEqual(row.typed("-40"), 40, "A minus sign can't sneak a value below the floor")
+        XCTAssertEqual(row.typed("6a3"), .accepted(63))
+        XCTAssertEqual(row.typed("-40"), .accepted(40),
+                       "A minus sign is dropped, not read as a negative")
     }
 
-    func testTypingIsFlooredAtZeroWithNoHistory() {
+    func testWithNoHistoryAnythingFromZeroUpIsAccepted() {
         let row = step(value: nil, previous: nil)
-        XCTAssertEqual(row.typed("0"), 0)
-        XCTAssertEqual(row.typed("35"), 35)
+        XCTAssertEqual(row.typed("0"), .accepted(0))
+        XCTAssertEqual(row.typed("35"), .accepted(35))
     }
 
-    func testPartialTypingClampsWithoutLosingTheNextKeystroke() {
-        // What the row relies on: value is clamped every keystroke, but the raw
-        // text it holds is what the next keystroke appends to. Floor 55, the
-        // super types 7 then 0 to reach 70.
+    func testAPartialNumberIsJudgedOnlyWhenCommitted() {
+        // The field is read on blur, not per keystroke, so "7" is only ever
+        // evaluated if the super actually leaves it there.
         let row = step(value: 55, previous: 55)
-        XCTAssertEqual(row.typed("7"), 55, "Mid-typing the value is held at the floor")
-        XCTAssertEqual(row.typed("70"), 70, "The completed number is accepted")
+        XCTAssertEqual(row.typed("7"), .refused(7))
+        XCTAssertEqual(row.typed("70"), .accepted(70))
     }
 }

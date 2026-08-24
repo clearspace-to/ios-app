@@ -24,6 +24,8 @@ struct FpuEntryFormView: View {
     @State private var submitting = false
     @State private var progressText: String?
     @State private var errorMessage: String?
+    /// Set when a typed percent came in under last week's — see FpuStep.
+    @State private var backwardsMessage: String?
     /// Which division's percent field has the keyboard, so the form can offer
     /// one "Done" above the number pad (which has no return key of its own).
     @FocusState private var focusedKey: String?
@@ -95,6 +97,14 @@ struct FpuEntryFormView: View {
             } message: {
                 Text(errorMessage ?? "")
             }
+            .alert("Lower than last week", isPresented: Binding(
+                get: { backwardsMessage != nil },
+                set: { if !$0 { backwardsMessage = nil } }
+            )) {
+                Button("OK") { backwardsMessage = nil }
+            } message: {
+                Text(backwardsMessage ?? "")
+            }
             .task { await loadProjects() }
             .task(id: loadKey) { await loadForm() }
             .onChange(of: photoItems) { _, items in
@@ -164,7 +174,8 @@ struct FpuEntryFormView: View {
                     column: column,
                     previous: form.previous[column.key],
                     value: binding(for: column.key),
-                    focus: $focusedKey
+                    focus: $focusedKey,
+                    onRefused: { backwardsMessage = $0 }
                 )
             }
         } header: {
@@ -319,19 +330,18 @@ struct FpuEntryFormView: View {
 
 /// One division: last week's figure for reference, a typed percent, and ±5%.
 ///
-/// The typed field keeps its own raw text while the keyboard is up, and only
-/// re-renders from `value` once focus leaves. That's what makes clamping to the
-/// floor survivable mid-typing: with last week at 55, typing "7" then "0" holds
-/// the text at "7" then "70" (value 55, then 70) instead of rewriting the field
-/// to "55" after the first keystroke and turning the second into "550".
-///
-/// `value` is nonetheless clamped on every keystroke, so it is never below the
-/// floor even if the form is submitted with the keyboard still open.
+/// The field is free to type into and is only read when the keyboard leaves it.
+/// Nothing is clamped as they type — a number below last week is refused with a
+/// message and the field snaps back, so the super is told rather than quietly
+/// corrected. Because `value` only changes on a successful commit, it is never
+/// below the floor, even if Submit is tapped mid-edit.
 private struct FpuDivisionRow: View {
     let column: FpuColumn
     let previous: Int?
     @Binding var value: Int?
     var focus: FocusState<String?>.Binding
+    /// Reports a refused entry to the form, which owns the alert.
+    let onRefused: (String) -> Void
 
     @State private var text = ""
 
@@ -386,20 +396,33 @@ private struct FpuDivisionRow: View {
             .accessibilityLabel("\(column.label) plus 5 percent")
         }
         .onAppear { syncText() }
-        // Clamp as they type, so `value` is always safe to submit.
-        .onChange(of: text) { _, raw in
-            guard isEditing else { return }
-            value = step.typed(raw)
-        }
-        // Steppers and the initial prefill write `value` directly.
+        // Steppers, the week switcher and the initial prefill write `value`.
         .onChange(of: value) { _, _ in
             if !isEditing { syncText() }
         }
-        // Show what was actually recorded once they leave the field: a typed
-        // "7" against a floor of 55 reads back as "55".
+        // Read the field only when they're done with it.
         .onChange(of: focus.wrappedValue) { old, _ in
-            if old == column.key { syncText() }
+            if old == column.key { commit() }
         }
+    }
+
+    private func commit() {
+        switch step.typed(text) {
+        case .cleared:
+            value = nil
+        case .accepted(let percent):
+            value = percent
+        case .refused(let percent):
+            onRefused("""
+                \(column.label) was \(step.floor)% last week, so \(percent)% \
+                can't be filed — progress doesn't go backwards. Enter \
+                \(step.floor)% or more, or clear the field to leave this \
+                division unanswered. Past weeks can still be corrected in \
+                safe_space on the web.
+                """)
+        }
+        // Either way the field goes back to showing what is actually recorded.
+        syncText()
     }
 
     private func syncText() {
