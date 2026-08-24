@@ -94,8 +94,13 @@ struct FpuColumn: Identifiable, Hashable {
 /// off-grid case that its first version got wrong — a division nudged to 82
 /// with last week at 80 can still come back to 80.
 ///
-/// Typing is deliberately not floored anywhere: that's the escape hatch for a
-/// week whose figure was wrong in the first place.
+/// The floor binds TYPING here too, which is a deliberate divergence from the
+/// web form: on the web a typed value is free, as the escape hatch for a week
+/// filed wrong. On a phone the only way to correct a bad prior week is to go
+/// under last week, and per Mark (2026-08-24) the phone must not be able to do
+/// that at all — a super in the field can only move progress forward, and
+/// corrections happen on the web. Clearing a division to blank is still
+/// allowed: that files no answer, not a lower number.
 struct FpuStep {
     /// Last week's percentage. nil = no history, which floors the division at 0.
     let previous: Int?
@@ -114,6 +119,16 @@ struct FpuStep {
     func stepped(by delta: Int) -> Int {
         let snapped = Int((Double(base + delta) / 5).rounded()) * 5
         return min(100, max(floor, snapped))
+    }
+
+    /// A typed value: held to the same floor as the steppers, and to 0–100.
+    /// Unlike a step it does NOT snap to the 5% grid — a super typing 63 means 63.
+    func typed(_ raw: String) -> Int? {
+        // Three digits is enough for 0–100, and keeps a long paste from
+        // overflowing Int on the way to being clamped anyway.
+        let digits = raw.filter(\.isNumber).prefix(3)
+        guard let number = Int(digits) else { return nil }
+        return min(100, max(floor, number))
     }
 }
 

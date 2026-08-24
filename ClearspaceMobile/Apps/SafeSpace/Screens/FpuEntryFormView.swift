@@ -24,6 +24,9 @@ struct FpuEntryFormView: View {
     @State private var submitting = false
     @State private var progressText: String?
     @State private var errorMessage: String?
+    /// Which division's percent field has the keyboard, so the form can offer
+    /// one "Done" above the number pad (which has no return key of its own).
+    @FocusState private var focusedKey: String?
 
     init(service: SafeSpaceService, fixedProjectNumber: String? = nil, initialWeekEnding: String? = nil) {
         self.service = service
@@ -77,6 +80,11 @@ struct FpuEntryFormView: View {
                             .bold()
                             .disabled(!canSubmit)
                     }
+                }
+                // The number pad has no return key, so this is the way out of it.
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Done") { focusedKey = nil }
                 }
             }
             .alert("Error", isPresented: Binding(
@@ -152,40 +160,12 @@ struct FpuEntryFormView: View {
     private func progressSection(_ form: FpuEntryForm) -> some View {
         Section {
             ForEach(form.columns) { column in
-                let step = FpuStep(previous: form.previous[column.key], value: values[column.key])
-                HStack(spacing: 8) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(column.label)
-                            .font(.subheadline)
-                        Text(form.previous[column.key].map { "Last week \($0)%" } ?? "No previous entry")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                    }
-                    Spacer(minLength: 4)
-                    Text(values[column.key].map { "\($0)%" } ?? "—")
-                        .font(.body.weight(.semibold))
-                        .monospacedDigit()
-                        .foregroundStyle(values[column.key] == nil ? Color.secondary : Color.primary)
-
-                    // Two buttons rather than a Stepper: only the minus side is
-                    // disabled at the floor, and a Stepper can't disable one half.
-                    Button {
-                        values[column.key] = step.stepped(by: -5)
-                    } label: {
-                        Image(systemName: "minus")
-                    }
-                    .buttonStyle(.bordered)
-                    .disabled(step.atFloor)
-                    .accessibilityLabel("\(column.label) minus 5 percent")
-
-                    Button {
-                        values[column.key] = step.stepped(by: 5)
-                    } label: {
-                        Image(systemName: "plus")
-                    }
-                    .buttonStyle(.bordered)
-                    .accessibilityLabel("\(column.label) plus 5 percent")
-                }
+                FpuDivisionRow(
+                    column: column,
+                    previous: form.previous[column.key],
+                    value: binding(for: column.key),
+                    focus: $focusedKey
+                )
             }
         } header: {
             Text("Progress by division")
@@ -236,6 +216,21 @@ struct FpuEntryFormView: View {
     }
 
     // MARK: - Behaviour
+
+    /// Removing the key rather than storing nil matters: `submit` sends every
+    /// column, so an absent key files as null ("no answer") instead of a number.
+    private func binding(for key: String) -> Binding<Int?> {
+        Binding(
+            get: { values[key] },
+            set: { newValue in
+                if let newValue {
+                    values[key] = newValue
+                } else {
+                    values.removeValue(forKey: key)
+                }
+            }
+        )
+    }
 
     private var overallLine: String {
         let set = values.values
@@ -319,6 +314,96 @@ struct FpuEntryFormView: View {
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+}
+
+/// One division: last week's figure for reference, a typed percent, and ±5%.
+///
+/// The typed field keeps its own raw text while the keyboard is up, and only
+/// re-renders from `value` once focus leaves. That's what makes clamping to the
+/// floor survivable mid-typing: with last week at 55, typing "7" then "0" holds
+/// the text at "7" then "70" (value 55, then 70) instead of rewriting the field
+/// to "55" after the first keystroke and turning the second into "550".
+///
+/// `value` is nonetheless clamped on every keystroke, so it is never below the
+/// floor even if the form is submitted with the keyboard still open.
+private struct FpuDivisionRow: View {
+    let column: FpuColumn
+    let previous: Int?
+    @Binding var value: Int?
+    var focus: FocusState<String?>.Binding
+
+    @State private var text = ""
+
+    private var step: FpuStep { FpuStep(previous: previous, value: value) }
+    private var isEditing: Bool { focus.wrappedValue == column.key }
+
+    var body: some View {
+        HStack(spacing: 8) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(column.label)
+                    .font(.subheadline)
+                Text(previous.map { "Last week \($0)%" } ?? "No previous entry")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer(minLength: 4)
+
+            HStack(spacing: 1) {
+                TextField("—", text: $text)
+                    .keyboardType(.numberPad)
+                    .multilineTextAlignment(.trailing)
+                    .monospacedDigit()
+                    .font(.body.weight(.semibold))
+                    .frame(width: 38)
+                    .focused(focus, equals: column.key)
+                    .accessibilityLabel("\(column.label) percent complete")
+                Text("%")
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(value == nil ? .secondary : .primary)
+            }
+
+            // Two buttons rather than a Stepper: only the minus side is
+            // disabled at the floor, and a Stepper can't disable one half.
+            Button {
+                focus.wrappedValue = nil
+                value = step.stepped(by: -5)
+            } label: {
+                Image(systemName: "minus")
+            }
+            .buttonStyle(.bordered)
+            .disabled(step.atFloor)
+            .accessibilityLabel("\(column.label) minus 5 percent")
+
+            Button {
+                focus.wrappedValue = nil
+                value = step.stepped(by: 5)
+            } label: {
+                Image(systemName: "plus")
+            }
+            .buttonStyle(.bordered)
+            .accessibilityLabel("\(column.label) plus 5 percent")
+        }
+        .onAppear { syncText() }
+        // Clamp as they type, so `value` is always safe to submit.
+        .onChange(of: text) { _, raw in
+            guard isEditing else { return }
+            value = step.typed(raw)
+        }
+        // Steppers and the initial prefill write `value` directly.
+        .onChange(of: value) { _, _ in
+            if !isEditing { syncText() }
+        }
+        // Show what was actually recorded once they leave the field: a typed
+        // "7" against a floor of 55 reads back as "55".
+        .onChange(of: focus.wrappedValue) { old, _ in
+            if old == column.key { syncText() }
+        }
+    }
+
+    private func syncText() {
+        text = value.map(String.init) ?? ""
     }
 }
 
