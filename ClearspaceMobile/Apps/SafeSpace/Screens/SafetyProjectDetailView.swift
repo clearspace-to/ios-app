@@ -23,8 +23,6 @@ struct SafetyProjectDetailView: View {
     @State private var showNewScheduleChange = false
     @State private var tab = "Info"
     @State private var showNewReport = false
-    // Short labels so seven segments fit a phone — mirrors the web app, which
-    // shortened its tab names for the same reason ("Daily" is daily reports).
     private let tabs = ["Info", "Trades", "FPUs", "Schedule", "Talks", "Forms", "Daily"]
 
     var body: some View {
@@ -42,10 +40,27 @@ struct SafetyProjectDetailView: View {
                         FieldRow(label: "Last daily report", value: summary.project.lastReportDate ?? "Never filed")
                     }
 
-                    Picker("Section", selection: $tab) {
-                        ForEach(tabs, id: \.self) { Text($0) }
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 6) {
+                            ForEach(tabs, id: \.self) { tabName in
+                                Button {
+                                    withAnimation(.snappy(duration: 0.2)) { tab = tabName }
+                                } label: {
+                                    Text(tabName)
+                                        .font(.subheadline)
+                                        .fontWeight(tab == tabName ? .semibold : .regular)
+                                        .padding(.horizontal, 14)
+                                        .padding(.vertical, 7)
+                                        .background(tab == tabName ? Color.accentColor : Color(.tertiarySystemFill))
+                                        .foregroundStyle(tab == tabName ? .white : .primary)
+                                        .clipShape(Capsule())
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                        .padding(.horizontal)
+                        .padding(.vertical, 4)
                     }
-                    .pickerStyle(.segmented)
                     .listRowInsets(EdgeInsets())
                     .listRowBackground(Color.clear)
                     .listRowSeparator(.hidden)
