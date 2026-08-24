@@ -48,6 +48,8 @@ struct AppModule: Identifiable {
     var screen: (String) -> AnyView = { _ in AnyView(EmptyView()) }
     var detail: (DetailRoute) -> AnyView = { _ in AnyView(EmptyView()) }
     var search: (String) async -> [ModuleSearchHit] = { _ in [] }
+    /// Start loading the search index before the user types anything.
+    var warmSearch: (() -> Void)?
 }
 
 /// Convenience for modules that only expose "coming soon" in the app switcher.

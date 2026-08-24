@@ -118,6 +118,9 @@ enum SafeSpaceModule {
                         target: target
                     )
                 }
+            },
+            warmSearch: {
+                Task { await LiveSafeSpaceService.index.warm(using: service) }
             }
         )
     }

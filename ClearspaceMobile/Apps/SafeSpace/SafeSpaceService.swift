@@ -256,7 +256,7 @@ struct LiveSafeSpaceService: SafeSpaceService {
 
     // MARK: - Caches
 
-    private static let index = SafetySearchIndex()
+    static let index = SafetySearchIndex()
     private static let names = ProjectNameCache()
 
     private func projectNames() async throws -> [String: String] {
@@ -349,6 +349,14 @@ actor SafetySearchIndex {
         cached = snapshot
         expiresAt = Date().addingTimeInterval(complete ? ttl : partialTTL)
         inFlight = nil
+    }
+
+    /// Kick off a load if the cache is cold, so results are ready by the time
+    /// the user finishes typing.
+    func warm(using service: SafetySearchLists) {
+        guard cached == nil || (expiresAt.map { Date() >= $0 } ?? true) else { return }
+        guard inFlight == nil else { return }
+        _ = load(from: service)
     }
 
     /// Age the cache out so a test can force the next reload.

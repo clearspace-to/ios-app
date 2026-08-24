@@ -18,6 +18,7 @@ struct AppShell: View {
     @State private var createOpen = false
     @State private var paletteQuery = ""
     @State private var hits: [ModuleSearchHit] = []
+    @State private var searching = false
     @State private var activeCreate: CreateAction?
     @State private var toast: String?
 
@@ -91,6 +92,7 @@ struct AppShell: View {
                 CommandPaletteView(
                     query: $paletteQuery,
                     groups: paletteGroups,
+                    isSearching: searching,
                     onCancel: closePalette
                 )
                 .transition(.opacity)
@@ -115,14 +117,17 @@ struct AppShell: View {
         .animation(.easeInOut(duration: 0.18), value: paletteOpen)
         .animation(.easeInOut(duration: 0.2), value: toast != nil)
         .task(id: paletteQuery + moduleID) {
-            // Debounce: searching a live module hits the network, and this task
-            // is cancelled and restarted on every keystroke.
             let query = paletteQuery
             try? await Task.sleep(for: .milliseconds(220))
             guard !Task.isCancelled else { return }
+            searching = true
             let found = await module.search(query)
             guard !Task.isCancelled else { return }
             hits = found
+            searching = false
+        }
+        .onChange(of: paletteOpen) { _, open in
+            if open { module.warmSearch?() }
         }
         .onAppear(perform: applyLaunchArguments)
         .confirmationDialog(module.createSheetTitle, isPresented: $createOpen, titleVisibility: .visible) {

@@ -18,6 +18,7 @@ struct PaletteGroup: Identifiable {
 struct CommandPaletteView: View {
     @Binding var query: String
     let groups: [PaletteGroup]
+    var isSearching: Bool = false
     let onCancel: () -> Void
     @FocusState private var focused: Bool
 
@@ -82,7 +83,11 @@ struct CommandPaletteView: View {
             }
             .clearspaceList()
             .overlay {
-                if groups.allSatisfy({ $0.items.isEmpty }) {
+                if isSearching && groups.allSatisfy({ $0.items.isEmpty }) {
+                    ProgressView("Searching\u{2026}")
+                        .foregroundStyle(.secondary)
+                } else if !isSearching && !query.trimmingCharacters(in: .whitespaces).isEmpty
+                            && groups.allSatisfy({ $0.items.isEmpty }) {
                     ContentUnavailableView.search(text: query)
                 }
             }
