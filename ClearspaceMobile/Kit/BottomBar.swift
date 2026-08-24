@@ -54,8 +54,8 @@ struct BottomBar: View {
             .accessibilityIdentifier("bottomBar.search")
 
             Button(action: onCreate) {
-                Image(systemName: "square.and.pencil")
-                    .font(.system(size: 17, weight: .medium))
+                Image(systemName: "plus")
+                    .font(.system(size: 22, weight: .medium))
                     .foregroundStyle(.primary)
                     .frame(width: 48, height: 48)
                     .liquidGlass(in: Circle())
