@@ -18,6 +18,7 @@
 		2342EAA0A6DF2618575C68FC /* DailyReportsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9BBE145E331B6E3AC1512CD /* DailyReportsView.swift */; };
 		2585B5E0C59FA17F5B2EA905 /* MockSafeSpaceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A86727D29225398FB5282226 /* MockSafeSpaceService.swift */; };
 		27F023D1F290FBF08C28F08A /* SafeSpaceModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE808A6E2C60A28A34FD4078 /* SafeSpaceModels.swift */; };
+		28F8CC6DD7728F8DFDDC24F1 /* FpuStepTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91BA40A042AB62323032E95D /* FpuStepTests.swift */; };
 		2D5BB84C9486123A69CB291F /* NavDrawer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D2D9A326A07C7E0F776B406 /* NavDrawer.swift */; };
 		2F6D9076477215A3FD321CFD /* StageBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D5968E3A9D81A11F6CA1CE1 /* StageBadge.swift */; };
 		313A201FABE63930E5B272CE /* ClearspaceApps.swift in Sources */ = {isa = PBXBuildFile; fileRef = E070DAA57C02D6735157A173 /* ClearspaceApps.swift */; };
@@ -131,6 +132,7 @@
 		740B8FAB62E32BA0319B7152 /* FpusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FpusView.swift; sourceTree = "<group>"; };
 		85FD5C5E17131160E7175C45 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		87D2D81EC26B0AF643D7A1CD /* FormSubmissionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormSubmissionsView.swift; sourceTree = "<group>"; };
+		91BA40A042AB62323032E95D /* FpuStepTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FpuStepTests.swift; sourceTree = "<group>"; };
 		968D7BCB2C0039C6CB981E33 /* PipelineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PipelineView.swift; sourceTree = "<group>"; };
 		98A3834F4B547C0ADA29A12F /* ScheduleModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleModels.swift; sourceTree = "<group>"; };
 		9A6862F466B2B2F725495B9A /* DailyReportFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyReportFormView.swift; sourceTree = "<group>"; };
@@ -354,6 +356,7 @@
 			isa = PBXGroup;
 			children = (
 				AC6D99E552A23AF490AE5310 /* FpuDecodingTests.swift */,
+				91BA40A042AB62323032E95D /* FpuStepTests.swift */,
 				F104459044C85B6092100C20 /* SafeSpaceDecodingTests.swift */,
 				D3E5C33C81542ED20A3A5EFA /* ScheduleDecodingTests.swift */,
 			);
@@ -479,6 +482,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A7F991C8838FE168FBBF97C1 /* FpuDecodingTests.swift in Sources */,
+				28F8CC6DD7728F8DFDDC24F1 /* FpuStepTests.swift in Sources */,
 				E4EA10E6E6CCEAE4DB3E9452 /* SafeSpaceDecodingTests.swift in Sources */,
 				13ADB311130D28C1CF48AA7A /* ScheduleDecodingTests.swift in Sources */,
 			);

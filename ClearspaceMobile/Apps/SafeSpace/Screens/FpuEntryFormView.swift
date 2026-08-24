@@ -152,25 +152,39 @@ struct FpuEntryFormView: View {
     private func progressSection(_ form: FpuEntryForm) -> some View {
         Section {
             ForEach(form.columns) { column in
-                Stepper {
-                    HStack(spacing: 8) {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(column.label)
-                                .font(.subheadline)
-                            Text(form.previous[column.key].map { "Last week \($0)%" } ?? "No previous entry")
-                                .font(.caption2)
-                                .foregroundStyle(.secondary)
-                        }
-                        Spacer(minLength: 4)
-                        Text(values[column.key].map { "\($0)%" } ?? "—")
-                            .font(.body.weight(.semibold))
-                            .monospacedDigit()
-                            .foregroundStyle(values[column.key] == nil ? Color.secondary : Color.primary)
+                let step = FpuStep(previous: form.previous[column.key], value: values[column.key])
+                HStack(spacing: 8) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(column.label)
+                            .font(.subheadline)
+                        Text(form.previous[column.key].map { "Last week \($0)%" } ?? "No previous entry")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
                     }
-                } onIncrement: {
-                    step(column.key, by: 5, previous: form.previous[column.key])
-                } onDecrement: {
-                    step(column.key, by: -5, previous: form.previous[column.key])
+                    Spacer(minLength: 4)
+                    Text(values[column.key].map { "\($0)%" } ?? "—")
+                        .font(.body.weight(.semibold))
+                        .monospacedDigit()
+                        .foregroundStyle(values[column.key] == nil ? Color.secondary : Color.primary)
+
+                    // Two buttons rather than a Stepper: only the minus side is
+                    // disabled at the floor, and a Stepper can't disable one half.
+                    Button {
+                        values[column.key] = step.stepped(by: -5)
+                    } label: {
+                        Image(systemName: "minus")
+                    }
+                    .buttonStyle(.bordered)
+                    .disabled(step.atFloor)
+                    .accessibilityLabel("\(column.label) minus 5 percent")
+
+                    Button {
+                        values[column.key] = step.stepped(by: 5)
+                    } label: {
+                        Image(systemName: "plus")
+                    }
+                    .buttonStyle(.bordered)
+                    .accessibilityLabel("\(column.label) plus 5 percent")
                 }
             }
         } header: {
@@ -222,14 +236,6 @@ struct FpuEntryFormView: View {
     }
 
     // MARK: - Behaviour
-
-    /// Steps on the 5% grid, starting from last week's number when the field
-    /// is unset — the same snap rule as the web form.
-    private func step(_ key: String, by delta: Int, previous: Int?) {
-        let base = values[key] ?? previous ?? 0
-        let snapped = Int((Double(base + delta) / 5).rounded()) * 5
-        values[key] = min(100, max(0, snapped))
-    }
 
     private var overallLine: String {
         let set = values.values

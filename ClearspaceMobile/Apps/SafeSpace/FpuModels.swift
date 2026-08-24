@@ -85,6 +85,38 @@ struct FpuColumn: Identifiable, Hashable {
     let label: String
 }
 
+/// The ±5% stepping rule for one division.
+///
+/// Progress doesn't run backwards, so last week's figure is the floor the
+/// steppers work above: a step down stops ON it rather than skipping past it,
+/// and once the value is sitting on the floor there is nowhere left to go and
+/// the minus is greyed out. Mirrors the web form's `TradeRow`, including the
+/// off-grid case that its first version got wrong — a division nudged to 82
+/// with last week at 80 can still come back to 80.
+///
+/// Typing is deliberately not floored anywhere: that's the escape hatch for a
+/// week whose figure was wrong in the first place.
+struct FpuStep {
+    /// Last week's percentage. nil = no history, which floors the division at 0.
+    let previous: Int?
+    /// What's in the field now; nil when unset.
+    let value: Int?
+
+    var floor: Int { previous ?? 0 }
+
+    /// An unset field steps from last week's number — the figure the super is
+    /// mentally adjusting from.
+    private var base: Int { value ?? previous ?? 0 }
+
+    /// Nothing left to step down to, so the minus button is disabled.
+    var atFloor: Bool { base <= floor }
+
+    func stepped(by delta: Int) -> Int {
+        let snapped = Int((Double(base + delta) / 5).rounded()) * 5
+        return min(100, max(floor, snapped))
+    }
+}
+
 /// One stored photo/file descriptor, kept verbatim in fpu_reports.attachments.
 struct FpuAttachment: Codable, Identifiable, Hashable {
     var id: String { path }
