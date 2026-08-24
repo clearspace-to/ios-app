@@ -12,7 +12,9 @@ struct DailyReportFormView: View {
     @State private var selectedProject: String
     @State private var reportDate = Date()
     @State private var weather = ""
-    @State private var crewLines: [CrewEntry] = [CrewEntry()]
+    @State private var crewLines: [CrewEntry] = []
+    @State private var committedTrades: [ProjectTrade]?
+    @State private var tradesLoading = false
     @State private var workPerformed = ""
     @State private var hazardsObserved = ""
     @State private var toolboxTalkDelivered = false
@@ -58,17 +60,45 @@ struct DailyReportFormView: View {
                 Section("Crew") {
                     ForEach($crewLines) { $entry in
                         HStack {
-                            TextField("Trade", text: $entry.tradeName)
+                            Text(entry.tradeName)
+                            Spacer()
                             Stepper("\(entry.headcount)", value: $entry.headcount, in: 1...200)
                                 .fixedSize()
                         }
                     }
                     .onDelete { crewLines.remove(atOffsets: $0) }
 
-                    Button {
-                        crewLines.append(CrewEntry())
-                    } label: {
-                        Label("Add Trade", systemImage: "plus.circle")
+                    if tradesLoading {
+                        HStack {
+                            ProgressView()
+                            Text("Loading trades…").foregroundStyle(.secondary)
+                        }
+                    } else if let trades = committedTrades {
+                        let available = trades.filter { trade in
+                            !crewLines.contains { $0.tradeName == trade.vendor }
+                        }
+                        if available.isEmpty && !trades.isEmpty {
+                            Text("All committed trades added")
+                                .foregroundStyle(.secondary)
+                                .font(.footnote)
+                        } else {
+                            NavigationLink {
+                                TradePickerList(trades: available) { vendor in
+                                    crewLines.append(CrewEntry(tradeName: vendor))
+                                }
+                            } label: {
+                                Label("Add Trade", systemImage: "plus.circle")
+                            }
+                            .disabled(available.isEmpty)
+                        }
+                    } else if selectedProject.isEmpty {
+                        Text("Select a project to see trades")
+                            .foregroundStyle(.secondary)
+                            .font(.footnote)
+                    } else {
+                        Text("Trade list unavailable — Procore may be offline")
+                            .foregroundStyle(.secondary)
+                            .font(.footnote)
                     }
                 }
 
@@ -119,6 +149,7 @@ struct DailyReportFormView: View {
                 Text(errorMessage ?? "")
             }
             .task { await loadProjects() }
+            .task(id: selectedProject) { await loadTrades() }
             .disabled(submitting)
             .interactiveDismissDisabled(submitting)
         }
@@ -136,6 +167,16 @@ struct DailyReportFormView: View {
            projects.contains(where: { $0.projectNumber == last }) {
             selectedProject = last
         }
+    }
+
+    private func loadTrades() async {
+        committedTrades = nil
+        crewLines = []
+        guard !selectedProject.isEmpty else { return }
+        tradesLoading = true
+        defer { tradesLoading = false }
+        let overview = try? await service.projectOverview(projectNumber: selectedProject)
+        committedTrades = overview?.trades
     }
 
     private func submit() async {
@@ -177,8 +218,51 @@ struct DailyReportFormView: View {
 
 struct CrewEntry: Identifiable {
     let id = UUID()
-    var tradeName: String = ""
+    var tradeName: String
     var headcount: Int = 1
+
+    init(tradeName: String = "", headcount: Int = 1) {
+        self.tradeName = tradeName
+        self.headcount = headcount
+    }
+}
+
+struct TradePickerList: View {
+    let trades: [ProjectTrade]
+    let onSelect: (String) -> Void
+    @Environment(\.dismiss) private var dismiss
+    @State private var search = ""
+
+    private var filtered: [ProjectTrade] {
+        if search.isEmpty { return trades }
+        return trades.filter {
+            $0.vendor.localizedCaseInsensitiveContains(search)
+                || $0.scopes.contains { $0.localizedCaseInsensitiveContains(search) }
+        }
+    }
+
+    var body: some View {
+        List(filtered) { trade in
+            Button {
+                onSelect(trade.vendor)
+                dismiss()
+            } label: {
+                VStack(alignment: .leading) {
+                    Text(trade.vendor).lineLimit(1)
+                    if !trade.scopeLine.isEmpty {
+                        Text(trade.scopeLine)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    }
+                }
+            }
+            .foregroundStyle(.primary)
+        }
+        .searchable(text: $search, prompt: "Search trades")
+        .navigationTitle("Select Trade")
+        .navigationBarTitleDisplayMode(.inline)
+    }
 }
 
 struct ProjectPickerList: View {
