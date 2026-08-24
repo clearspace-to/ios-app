@@ -117,6 +117,7 @@ struct FpuStep {
 
     /// Nothing left to step down to, so the minus button is disabled.
     var atFloor: Bool { base <= floor }
+    var atCeiling: Bool { base >= 100 }
 
     func stepped(by delta: Int) -> Int {
         let snapped = Int((Double(base + delta) / 5).rounded()) * 5

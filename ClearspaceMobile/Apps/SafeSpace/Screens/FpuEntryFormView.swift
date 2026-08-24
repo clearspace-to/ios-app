@@ -360,6 +360,12 @@ private struct FpuDivisionRow: View {
 
             Spacer(minLength: 4)
 
+            stepperButton(systemName: "minus", disabled: step.atFloor) {
+                focus.wrappedValue = nil
+                value = step.stepped(by: -5)
+            }
+            .accessibilityLabel("\(column.label) minus 5 percent")
+
             HStack(spacing: 1) {
                 TextField("—", text: $text)
                     .keyboardType(.numberPad)
@@ -374,25 +380,10 @@ private struct FpuDivisionRow: View {
                     .foregroundStyle(value == nil ? .secondary : .primary)
             }
 
-            // Two buttons rather than a Stepper: only the minus side is
-            // disabled at the floor, and a Stepper can't disable one half.
-            Button {
-                focus.wrappedValue = nil
-                value = step.stepped(by: -5)
-            } label: {
-                Image(systemName: "minus")
-            }
-            .buttonStyle(.bordered)
-            .disabled(step.atFloor)
-            .accessibilityLabel("\(column.label) minus 5 percent")
-
-            Button {
+            stepperButton(systemName: "plus", disabled: step.atCeiling) {
                 focus.wrappedValue = nil
                 value = step.stepped(by: 5)
-            } label: {
-                Image(systemName: "plus")
             }
-            .buttonStyle(.bordered)
             .accessibilityLabel("\(column.label) plus 5 percent")
         }
         .onAppear { syncText() }
@@ -404,6 +395,18 @@ private struct FpuDivisionRow: View {
         .onChange(of: focus.wrappedValue) { old, _ in
             if old == column.key { commit() }
         }
+    }
+
+    private func stepperButton(systemName: String, disabled: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: systemName)
+                .font(.system(size: 13, weight: .bold))
+                .frame(width: 28, height: 28)
+                .foregroundStyle(disabled ? Color(.tertiaryLabel) : .white)
+                .background(disabled ? Color(.tertiarySystemFill) : .accentColor, in: Circle())
+        }
+        .buttonStyle(.plain)
+        .disabled(disabled)
     }
 
     private func commit() {
