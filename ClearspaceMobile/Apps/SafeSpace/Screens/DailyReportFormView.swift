@@ -14,6 +14,7 @@ struct DailyReportFormView: View {
     @State private var crewLines: [CrewEntry] = []
     @State private var committedTrades: [ProjectTrade]?
     @State private var tradesLoading = false
+    @State private var showTradePicker = false
     @State private var workPerformed = ""
     @State private var hazardsObserved = ""
     @State private var notes = ""
@@ -75,10 +76,8 @@ struct DailyReportFormView: View {
                                 .foregroundStyle(.secondary)
                                 .font(.footnote)
                         } else {
-                            NavigationLink {
-                                TradePickerList(trades: available) { vendor in
-                                    crewLines.append(CrewEntry(tradeName: vendor))
-                                }
+                            Button {
+                                showTradePicker = true
                             } label: {
                                 Label("Add Trade", systemImage: "plus.circle")
                             }
@@ -136,8 +135,22 @@ struct DailyReportFormView: View {
             }
             .task { await loadProjects() }
             .task(id: selectedProject) { await loadTrades() }
+            .sheet(isPresented: $showTradePicker) {
+                NavigationStack {
+                    TradePickerList(trades: availableTrades) { vendor in
+                        crewLines.append(CrewEntry(tradeName: vendor))
+                    }
+                }
+            }
             .disabled(submitting)
             .interactiveDismissDisabled(submitting)
+        }
+    }
+
+    private var availableTrades: [ProjectTrade] {
+        guard let trades = committedTrades else { return [] }
+        return trades.filter { trade in
+            !crewLines.contains { $0.tradeName == trade.vendor }
         }
     }
 
